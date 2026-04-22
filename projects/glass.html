@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Glassmorphism SPA — Shivam Sharma</title>
+<meta name="description" content="5000+ line zero-dependency single-page frontend with multi-view architecture, PWA support, and premium glassmorphism design."/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23030507'/%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f8fff'/%3E%3Cstop offset='1' stop-color='%239b5fff'/%3E%3C/linearGradient%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)' opacity='.9'/%3E%3Ctext x='5' y='23' font-family='Arial Black,sans-serif' font-size='17' font-weight='900' fill='white'%3ESS%3C/text%3E%3C/svg%3E"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#030507;--surface:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);--accent:#4f8fff;--accent2:#9b5fff;--accent3:#00e5ff;--text:#e8eaf0;--muted:#6b7280;--green:#00e57a;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:rgba(79,143,255,.3);border-radius:4px;}
+#pt{position:fixed;inset:0;z-index:999;background:var(--bg);opacity:1;transition:opacity .45s ease;pointer-events:none;}
+.noise{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px;}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 5%;background:rgba(3,5,7,.85);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.05);}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:800;color:#fff;}
+.nav-logo-text{font-family:'Syne',sans-serif;font-size:.86rem;font-weight:600;background:linear-gradient(90deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.back-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;text-decoration:none;transition:all .2s;}
+.back-btn:hover{border-color:rgba(79,143,255,.3);color:var(--accent);background:rgba(79,143,255,.06);}
+.back-btn svg{width:14px;height:14px;}
+.proj-hero{padding:140px 5% 80px;max-width:1100px;margin:0 auto;}
+.proj-title{font-family:'Syne',sans-serif;font-size:clamp(2.5rem,5.5vw,5rem);font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:20px;}
+.proj-title .gr{background:linear-gradient(135deg,#9b5fff,#4f8fff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.proj-tagline{font-size:clamp(.95rem,1.9vw,1.15rem);color:var(--muted);font-weight:300;line-height:1.7;max-width:680px;margin-bottom:36px;}
+.proj-cta-row{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-live{padding:12px 24px;background:linear-gradient(135deg,var(--accent2),var(--accent));border:none;border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.87rem;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s;box-shadow:0 0 24px rgba(155,95,255,.3);}
+.btn-live:hover{transform:translateY(-2px);box-shadow:0 0 42px rgba(155,95,255,.55);}
+.btn-gh{padding:12px 24px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;font-weight:400;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;}
+.btn-gh:hover{border-color:rgba(79,143,255,.4);background:rgba(79,143,255,.06);transform:translateY(-2px);}
+.btn-gh svg,.btn-live svg{width:15px;height:15px;flex-shrink:0;}
+.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:60px 0;}
+.stat-item{background:var(--surface);padding:24px 20px;text-align:center;}
+.stat-num{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:5px;}
+.stat-lbl{font-size:.72rem;color:var(--muted);letter-spacing:.06em;}
+.proj-body{max-width:1100px;margin:0 auto;padding:0 5% 100px;}
+.sec{margin-bottom:72px;}
+.sec-label{font-size:.66rem;font-weight:400;letter-spacing:.24em;text-transform:uppercase;color:var(--accent2);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec-label::before{content:'';width:20px;height:1px;background:var(--accent2);}
+.sec-h{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;line-height:1.2;letter-spacing:-.01em;margin-bottom:22px;}
+.sec-p{font-size:.97rem;color:var(--muted);line-height:1.85;margin-bottom:16px;}
+.sec-p strong{color:var(--text);font-weight:500;}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:24px;}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px;transition:border-color .2s,transform .2s;}
+.feat-card:hover{border-color:rgba(155,95,255,.25);transform:translateY(-2px);}
+.feat-icon{font-size:1.5rem;margin-bottom:12px;}
+.feat-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:7px;}
+.feat-desc{font-size:.82rem;color:var(--muted);line-height:1.65;}
+.stack-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px;}
+.stack-pill{font-size:.75rem;font-weight:400;padding:7px 14px;border-radius:100px;background:rgba(155,95,255,.07);border:1px solid rgba(155,95,255,.15);color:var(--accent2);}
+.stack-pill.blue{background:rgba(79,143,255,.07);border-color:rgba(79,143,255,.15);color:var(--accent);}
+.stack-pill.cyan{background:rgba(0,229,255,.07);border-color:rgba(0,229,255,.15);color:var(--accent3);}
+.screens-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:24px;}
+.screen-card{border-radius:12px;overflow:hidden;background:rgba(155,95,255,.04);border:1px solid var(--border);aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;position:relative;}
+.screen-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:100%;height:100%;padding:24px;text-align:center;}
+.screen-icon{font-size:2.5rem;opacity:.5;}
+.screen-label{font-size:.75rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+.screen-badge{position:absolute;top:12px;left:12px;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;padding:4px 10px;border-radius:100px;background:rgba(155,95,255,.1);border:1px solid rgba(155,95,255,.2);color:var(--accent2);}
+footer{border-top:1px solid rgba(255,255,255,.05);padding:28px 5%;display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;}
+.footer-text{font-size:.75rem;color:var(--muted);}
+.footer-links{display:flex;gap:20px;}
+.footer-links a{font-size:.75rem;color:var(--muted);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--accent);}
+@media(max-width:768px){.stats-bar{grid-template-columns:1fr 1fr;}.proj-cta-row{flex-direction:column;}footer{flex-direction:column;gap:12px;text-align:center;}}
+</style>
+</head>
+<body>
+<div id="pt"></div>
+<div class="noise"></div>
+
+<nav>
+  <a class="nav-logo" href="../index.html">
+    <div class="nav-logo-mark">SS</div>
+    <span class="nav-logo-text">Shivam Sharma</span>
+  </a>
+  <a class="back-btn" href="../index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Portfolio
+  </a>
+</nav>
+
+<div class="proj-hero">
+  <h1 class="proj-title">Glass<span class="gr">morphism</span> SPA</h1>
+  <p class="proj-tagline">A 5,000+ line, zero-dependency, single-file web application featuring multi-view SPA architecture, a complete glassmorphism design system, PWA support, and batch download workflows — no frameworks, no build tools, no compromises.</p>
+  <div class="proj-cta-row">
+    <a href="https://videodownloader-iicl.onrender.com" target="_blank" rel="noopener noreferrer" class="btn-live">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+      View Live App
+    </a>
+    <a href="https://github.com/sharmashivam9109-debug/videodownloader" target="_blank" rel="noopener noreferrer" class="btn-gh">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      Source on GitHub
+    </a>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-item"><div class="stat-num">5K+</div><div class="stat-lbl">Lines, 1 File</div></div>
+  <div class="stat-item"><div class="stat-num">4</div><div class="stat-lbl">SPA Views</div></div>
+  <div class="stat-item"><div class="stat-num">0</div><div class="stat-lbl">Dependencies</div></div>
+  <div class="stat-item"><div class="stat-num">PWA</div><div class="stat-lbl">Installable</div></div>
+</div>
+
+<div class="proj-body">
+  <div class="sec">
+    <div class="sec-label">Overview</div>
+    <h2 class="sec-h">The Frontend That Ships</h2>
+    <p class="sec-p">This is the frontend of VidSnap — but it's a significant engineering achievement in its own right. At over 5,000 lines of hand-crafted HTML, CSS, and JavaScript in a <strong>single file</strong>, it demonstrates that real applications don't need webpack, React, or npm.</p>
+    <p class="sec-p">The design system is built on <strong>glassmorphism aesthetics</strong> — layered transparency, blur effects, gradient borders, and depth through light simulation. Every component is custom: no Bootstrap, no Tailwind utility soup, just purpose-built CSS variables and thoughtful design decisions.</p>
+    <p class="sec-p">The SPA router handles 4 main views — Download, Batch, History, and Settings — with URL-hash navigation, state persistence via localStorage, and animated transitions powered by <strong>GSAP</strong>.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Features</div>
+    <h2 class="sec-h">What's Inside</h2>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-name">Glassmorphism Design System</div>
+        <div class="feat-desc">Complete custom design language with CSS variables, backdrop blur, gradient overlays, and consistent visual hierarchy.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔀</div>
+        <div class="feat-name">Hash-Based SPA Router</div>
+        <div class="feat-desc">Client-side routing across 4 views with animated transitions — no page reloads, browser history support, deep link friendly.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📦</div>
+        <div class="feat-name">Batch Download Queue</div>
+        <div class="feat-desc">Queue multiple URLs, track progress per-item, cancel individual downloads, and export the batch as a list.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📱</div>
+        <div class="feat-name">PWA with Service Worker</div>
+        <div class="feat-desc">Offline fallback, app manifest, home screen install prompt, and native-like full-screen mode on Android.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🌗</div>
+        <div class="feat-name">Dark / Light Mode</div>
+        <div class="feat-desc">System-preference detection, manual toggle with localStorage persistence, and full theme variable swap.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚖️</div>
+        <div class="feat-name">Full Legal Pages</div>
+        <div class="feat-desc">In-app Terms of Service, Privacy Policy, DMCA notice, and bilingual Refund Policy — all embedded within the SPA.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-name">Paste-Triggered Auto-Fetch</div>
+        <div class="feat-desc">Clipboard paste instantly triggers URL detection, platform identification, and format fetching — zero extra clicks.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <div class="feat-name">Low-End Device Mode</div>
+        <div class="feat-desc">Detects low-memory or slow devices and disables heavy animations for a smooth experience on budget hardware.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Screenshots</div>
+    <h2 class="sec-h">UI Preview</h2>
+    <div class="screens-grid">
+      <div class="screen-card">
+        <span class="screen-badge">Download View</span>
+        <div class="screen-placeholder"><div class="screen-icon">🎨</div><div class="screen-label">Glassmorphism Download UI · Dark Mode</div></div>
+      </div>
+      <div class="screen-card">
+        <span class="screen-badge">Batch Mode</span>
+        <div class="screen-placeholder"><div class="screen-icon">📦</div><div class="screen-label">Multi-URL Queue · Progress Tracking</div></div>
+      </div>
+      <div class="screen-card">
+        <span class="screen-badge">PWA Install</span>
+        <div class="screen-placeholder"><div class="screen-icon">📱</div><div class="screen-label">Add to Home Screen · Offline Capable</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-label">Tech Stack</div>
+    <h2 class="sec-h">Built With</h2>
+    <div class="stack-row">
+      <span class="stack-pill blue">HTML5</span>
+      <span class="stack-pill">CSS3 Custom Properties</span>
+      <span class="stack-pill">Vanilla JavaScript (ES6+)</span>
+      <span class="stack-pill cyan">GSAP 3</span>
+      <span class="stack-pill blue">Web App Manifest</span>
+      <span class="stack-pill">Service Worker API</span>
+      <span class="stack-pill">localStorage API</span>
+      <span class="stack-pill blue">Clipboard API</span>
+      <span class="stack-pill cyan">CSS backdrop-filter</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span class="footer-text">© 2026 Shivam Sharma</span>
+  <div class="footer-links">
+    <a href="../index.html">Home</a>
+    <a href="https://videodownloader-iicl.onrender.com" target="_blank" rel="noopener">Live App</a>
+    <a href="https://github.com/sharmashivam9109-debug/videodownloader" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  var pt=document.getElementById('pt');
+  setTimeout(function(){pt.style.opacity='0';},50);
+  document.querySelectorAll('a[href^="../"]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();var href=a.href;
+      pt.style.opacity='1';
+      setTimeout(function(){window.location.href=href;},380);
+    });
+  });
+});
+</script>
+</body>
+</html>
