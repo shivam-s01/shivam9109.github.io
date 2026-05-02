@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Decision Systems · Shivam Sharma</title>
+<meta name="description" content="Mental models & execution frameworks I use to build.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --bg:#020408;
+  --surface:rgba(10,18,28,.75);
+  --border:rgba(79,143,255,.13);
+  --accent:#4f8fff;
+  --accent2:#9b5fff;
+  --accent3:#00e5ff;
+  --gold:#f5c842;
+  --green:#00e57a;
+  --text:#eef2ff;
+  --text2:#8a97a8;
+  --muted:#3a4450;
+  --font-title:'Syne',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --ease:cubic-bezier(.2,.9,.4,1.1);
+  --spring:cubic-bezier(.34,1.2,.64,1);
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:15px;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:rgba(79,143,255,.25);border-radius:3px;}
+
+/* ── BG LAYER ───────────────────────────────────────────── */
+.page-bg{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% -5%, rgba(20,55,120,.45) 0%, transparent 70%),
+    repeating-linear-gradient(45deg, rgba(79,143,255,.018) 0, rgba(79,143,255,.018) 1px, transparent 1px, transparent 28px);
+}
+.page-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.013) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.013) 1px,transparent 1px);
+  background-size:52px 52px;
+  mask-image:radial-gradient(ellipse 80% 50% at 50% 15%,black 20%,transparent 80%);
+}
+
+/* ── NAV ────────────────────────────────────────────────── */
+nav{
+  position:sticky;top:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 4%;height:52px;
+  background:rgba(2,4,8,.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(79,143,255,.1);
+}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none;}
+.nav-mark{
+  width:26px;height:26px;border-radius:7px;
+  background:linear-gradient(145deg,#2a5faa,#0f2c44);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-title);font-weight:800;font-size:.62rem;
+  border:1px solid rgba(255,255,255,.1);color:var(--text);
+}
+.nav-name{font-family:var(--font-title);font-weight:700;font-size:.72rem;color:var(--text);}
+.nav-back{
+  font-size:.65rem;color:var(--muted);
+  border:1px solid rgba(79,143,255,.14);
+  padding:4px 11px;border-radius:10px;
+  background:rgba(255,255,255,.02);
+  transition:.2s;text-decoration:none;
+}
+.nav-back:hover{color:var(--text);border-color:var(--accent);}
+
+/* ── WRAP ───────────────────────────────────────────────── */
+.wrap{
+  position:relative;z-index:2;
+  max-width:1080px;margin:0 auto;
+  padding:44px 4% 72px;
+}
+
+/* ── HERO ───────────────────────────────────────────────── */
+.hero{text-align:center;margin-bottom:52px;}
+.hero-eye{
+  display:inline-flex;gap:8px;align-items:center;
+  font-family:var(--font-mono);font-size:.58rem;letter-spacing:.2em;
+  background:rgba(0,229,255,.055);border:1px solid rgba(0,229,255,.18);
+  padding:4px 14px;border-radius:60px;margin-bottom:20px;color:var(--accent3);
+}
+.dot{
+  width:6px;height:6px;background:var(--accent3);
+  border-radius:50%;box-shadow:0 0 8px var(--accent3);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.2)}}
+.hero h1{
+  font-family:var(--font-title);
+  font-size:clamp(2rem,6vw,3.6rem);
+  font-weight:800;letter-spacing:-.04em;
+  background:linear-gradient(135deg,#fff,#8bb4ff,#00e5ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:10px;
+}
+.hero-rule{
+  font-family:var(--font-mono);font-size:.7rem;
+  color:rgba(255,255,255,.32);letter-spacing:.18em;
+}
+.hero-rule::before,.hero-rule::after{content:"⎯";margin:0 10px;opacity:.45;}
+.hero p{
+  font-size:.85rem;color:var(--text2);
+  max-width:520px;margin:12px auto 0;line-height:1.65;
+}
+.hero-chip{
+  display:inline-block;margin-top:14px;
+  font-family:var(--font-mono);font-size:.65rem;
+  color:var(--accent3);background:rgba(0,229,255,.055);
+  padding:3px 13px;border-radius:60px;letter-spacing:.07em;
+}
+.divider{width:48px;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent3));margin:22px auto 0;border-radius:2px;}
+
+/* ── WHY BOX ────────────────────────────────────────────── */
+.why-box{
+  margin-bottom:48px;padding:22px 24px;
+  background:rgba(10,20,38,.55);
+  border-left:3px solid var(--accent);
+  border-radius:12px;
+}
+.why-eye{font-family:var(--font-mono);font-size:.55rem;letter-spacing:.22em;color:var(--accent);margin-bottom:10px;}
+.why-box p{font-size:.82rem;line-height:1.72;color:var(--text2);}
+.why-box strong{color:var(--text);font-weight:600;}
+.eng-tag{
+  display:inline-block;margin-top:14px;
+  font-family:var(--font-mono);font-size:.62rem;
+  color:var(--green);border-top:1px dashed rgba(0,229,125,.2);
+  padding-top:10px;
+}
+
+/* ── TOP 3 ──────────────────────────────────────────────── */
+.sec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:18px;}
+.sec-label{font-family:var(--font-title);font-size:1.15rem;font-weight:800;letter-spacing:-.02em;}
+.sec-badge{
+  font-family:var(--font-mono);font-size:.5rem;
+  background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.22);
+  color:var(--gold);padding:3px 10px;border-radius:60px;
+}
+.sec-count{
+  margin-left:auto;font-family:var(--font-mono);font-size:.55rem;
+  background:rgba(255,255,255,.04);padding:2px 10px;border-radius:60px;color:var(--muted);
+}
+
+/* TOP 3 GRID */
+.top3-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:16px;
+  margin-bottom:56px;
+}
+.t3-card{
+  position:relative;border-radius:16px;overflow:hidden;
+  cursor:pointer;
+  border:1px solid rgba(79,143,255,.14);
+  transition:transform .35s var(--ease),border-color .35s,box-shadow .35s;
+}
+.t3-card:hover{transform:translateY(-7px);border-color:rgba(79,143,255,.4);box-shadow:0 22px 38px -10px rgba(0,0,0,.7);}
+.t3-card.rank1{
+  border-color:rgba(245,200,66,.25);
+  animation:goldPulse 2.4s infinite ease-in-out;
+}
+@keyframes goldPulse{
+  0%{box-shadow:0 0 0 0 rgba(245,200,66,0);border-color:rgba(245,200,66,.18);}
+  50%{box-shadow:0 0 0 4px rgba(245,200,66,.12);border-color:rgba(245,200,66,.55);}
+  100%{box-shadow:0 0 0 0 rgba(245,200,66,0);border-color:rgba(245,200,66,.18);}
+}
+/* poster area */
+.t3-img-wrap{
+  position:relative;
+  aspect-ratio:2/3;
+  overflow:hidden;
+}
+.t3-img-wrap img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform .5s ease;
+}
+.t3-card:hover .t3-img-wrap img{transform:scale(1.06);}
+.t3-img-wrap::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,#020408 0%,rgba(2,4,8,.15) 55%,transparent 85%);
+}
+/* rank badge */
+.t3-rank{
+  position:absolute;top:8px;left:8px;z-index:4;
+  font-family:var(--font-title);font-weight:800;font-size:.6rem;
+  background:rgba(0,0,0,.65);backdrop-filter:blur(8px);
+  padding:2px 8px;border-radius:20px;
+}
+.r1{color:var(--gold);border:1px solid rgba(245,200,66,.3);}
+.r2{color:#bcc5d0;border:1px solid rgba(188,197,208,.2);}
+.r3{color:#cd9f6e;border:1px solid rgba(205,159,110,.2);}
+/* type tag */
+.t3-tag{
+  position:absolute;top:8px;right:8px;z-index:4;
+  font-family:var(--font-mono);font-size:.42rem;
+  padding:2px 7px;border-radius:40px;backdrop-filter:blur(6px);
+}
+.tag-anime{background:rgba(79,143,255,.15);color:var(--accent);border:1px solid rgba(79,143,255,.28);}
+.tag-manhwa{background:rgba(155,95,255,.15);color:var(--accent2);border:1px solid rgba(155,95,255,.28);}
+.tag-fw{background:rgba(245,200,66,.12);color:var(--gold);border:1px solid rgba(245,200,66,.28);}
+/* info strip */
+.t3-info{padding:10px 10px 12px;}
+.t3-title{font-family:var(--font-title);font-weight:700;font-size:.78rem;margin-bottom:3px;line-height:1.2;}
+.t3-line{font-size:.6rem;color:var(--text2);font-style:italic;}
+
+/* ── CARDS SECTION ──────────────────────────────────────── */
+.cards-section{margin-bottom:52px;}
+.cards-section .sec-head{
+  border-bottom:1px solid rgba(255,255,255,.05);
+  padding-bottom:10px;margin-bottom:16px;
+}
+.sec-icon{font-size:1.1rem;}
+.sec-name{font-family:var(--font-title);font-weight:700;letter-spacing:-.01em;}
+
+.cards-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:12px;
+}
+.mc{
+  position:relative;border-radius:var(--r);overflow:hidden;
+  cursor:pointer;
+  background:var(--surface);
+  border:1px solid var(--border);
+  transition:transform .3s var(--ease),border-color .3s,box-shadow .3s;
+}
+.mc:hover{transform:translateY(-5px);border-color:rgba(79,143,255,.32);box-shadow:0 14px 28px -8px rgba(0,0,0,.65);}
+/* cover */
+.mc-cover{position:relative;aspect-ratio:3/4;overflow:hidden;}
+.mc-cover img{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  object-fit:cover;
+  transition:transform .45s ease;
+}
+.mc:hover .mc-cover img{transform:scale(1.07);}
+.mc-cover::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to top,rgba(2,4,8,.9) 0%,rgba(2,4,8,.1) 55%,transparent 80%);
+}
+/* floating tag on cover */
+.mc-ftag{
+  position:absolute;bottom:6px;left:6px;z-index:3;
+  font-family:var(--font-mono);font-size:.38rem;
+  backdrop-filter:blur(6px);
+  background:rgba(0,0,0,.5);padding:2px 7px;border-radius:40px;
+  letter-spacing:.08em;color:var(--text2);
+}
+/* play hover icon */
+.mc-play{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(.6);
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;opacity:0;z-index:4;
+  transition:all .2s;
+}
+.mc:hover .mc-play{opacity:1;transform:translate(-50%,-50%) scale(1);}
+/* info below cover */
+.mc-info{padding:6px 8px 9px;}
+.mc-title{
+  font-family:var(--font-title);font-size:.68rem;font-weight:700;
+  line-height:1.2;margin-bottom:3px;
+}
+.mc-teaser{
+  font-size:.5rem;color:var(--accent3);
+  font-family:var(--font-mono);opacity:.8;margin-bottom:4px;
+}
+.mc-meta{display:flex;gap:5px;align-items:center;}
+.mc-type{font-size:.4rem;font-family:var(--font-mono);padding:1px 7px;border-radius:40px;}
+.mc-status{font-size:.45rem;color:var(--muted);}
+
+/* ── MODAL ──────────────────────────────────────────────── */
+.overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.9);backdrop-filter:blur(24px);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+  opacity:0;visibility:hidden;transition:all .3s;
+}
+.overlay.open{opacity:1;visibility:visible;}
+.modal{
+  max-width:720px;width:100%;
+  background:rgba(8,14,24,.96);
+  border:1px solid rgba(79,143,255,.18);
+  border-radius:24px;
+  transform:scale(.96) translateY(18px);
+  transition:transform .4s var(--spring);
+  max-height:90vh;overflow-y:auto;
+}
+.overlay.open .modal{transform:scale(1) translateY(0);}
+::-webkit-scrollbar{width:3px;}
+
+.modal-top{
+  display:grid;grid-template-columns:120px 1fr;
+  gap:0;align-items:stretch;
+}
+/* modal poster */
+.modal-poster{
+  position:relative;width:120px;min-height:180px;
+  overflow:hidden;border-radius:24px 0 0 0;flex-shrink:0;
+}
+.modal-poster img{
+  position:absolute;inset:0;
+  width:100%;height:100%;object-fit:cover;
+}
+/* modal text side */
+.modal-content{padding:18px 20px;}
+.modal-close-row{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;}
+.modal-close{
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,.09);border:none;
+  color:var(--text2);cursor:pointer;font-size:.75rem;
+  transition:.18s;
+}
+.modal-close:hover{background:rgba(255,255,255,.18);color:var(--text);}
+.modal-esc{
+  font-family:var(--font-mono);font-size:.48rem;
+  color:var(--muted);background:rgba(255,255,255,.04);
+  padding:4px 8px;border-radius:6px;align-self:center;
+}
+.modal-type{
+  display:inline-block;font-family:var(--font-mono);
+  font-size:.5rem;padding:2px 10px;border-radius:60px;margin-bottom:7px;
+}
+.modal-title{
+  font-family:var(--font-title);font-size:1.3rem;
+  font-weight:800;letter-spacing:-.02em;line-height:1.2;
+}
+.modal-alt{font-size:.6rem;color:var(--muted);margin-bottom:14px;margin-top:2px;}
+/* synopsis */
+.m-label{
+  font-family:var(--font-mono);font-size:.5rem;
+  letter-spacing:.18em;color:var(--text2);
+  margin-bottom:7px;display:flex;align-items:center;gap:7px;
+}
+.m-label::before{content:'';width:10px;height:1px;background:currentColor;}
+.m-para{font-size:.78rem;line-height:1.68;color:var(--text2);margin-bottom:.5rem;}
+/* why box */
+.modal-why{
+  background:rgba(155,95,255,.06);
+  border-left:2px solid var(--accent2);
+  padding:10px 12px;border-radius:10px;margin-bottom:14px;
+}
+.modal-why .m-para{color:var(--text2);}
+/* applied insight */
+.modal-insight{
+  background:rgba(0,229,255,.05);
+  border-left:2px solid var(--accent3);
+  padding:8px 12px;border-radius:10px;
+  font-size:.74rem;color:var(--accent3);
+  font-family:var(--font-mono);margin-bottom:16px;
+  line-height:1.55;
+}
+/* dna bars */
+.dna-wrap{display:flex;flex-direction:column;gap:8px;}
+.dna-row{display:flex;align-items:center;gap:8px;}
+.dna-name{width:140px;font-family:var(--font-mono);font-size:.56rem;color:var(--text2);flex-shrink:0;}
+.dna-track{flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.dna-fill{height:100%;transform:scaleX(0);transform-origin:left;transition:transform .85s var(--ease);border-radius:4px;}
+.c0{background:linear-gradient(90deg,var(--accent),var(--accent3));}
+.c1{background:linear-gradient(90deg,var(--accent2),var(--accent));}
+.c2{background:linear-gradient(90deg,var(--gold),var(--accent));}
+.c3{background:linear-gradient(90deg,var(--green),var(--accent3));}
+.dna-pct{font-size:.55rem;font-family:var(--font-mono);color:var(--muted);width:32px;text-align:right;}
+
+/* ── FOOTER ─────────────────────────────────────────────── */
+.footer{
+  text-align:center;padding:26px 4% 20px;
+  border-top:1px solid rgba(255,255,255,.04);
+  margin-top:20px;
+}
+.footer-main{font-family:var(--font-mono);font-size:.6rem;color:rgba(255,255,255,.25);letter-spacing:.1em;}
+.footer-sub{margin-top:6px;font-size:.7rem;color:var(--muted);}
+.footer-sub a{color:var(--accent);text-decoration:none;}
+
+/* ── REVEAL ─────────────────────────────────────────────── */
+.reveal{opacity:0;transform:translateY(14px);transition:.55s var(--ease);}
+.reveal.in{opacity:1;transform:translateY(0);}
+
+/* ── SIGNAL BARS ────────────────────────────────────────── */
+.sig{position:fixed;bottom:18px;right:18px;display:flex;gap:3px;opacity:.16;pointer-events:none;align-items:flex-end;}
+.s{width:3px;background:var(--accent3);animation:vbar 1.6s infinite;}
+.s:nth-child(1){height:6px;animation-delay:0s;}
+.s:nth-child(2){height:10px;animation-delay:.15s;}
+.s:nth-child(3){height:16px;animation-delay:.3s;}
+.s:nth-child(4){height:10px;animation-delay:.45s;}
+.s:nth-child(5){height:6px;animation-delay:.6s;}
+@keyframes vbar{0%,100%{transform:scaleY(.35);}50%{transform:scaleY(1);}}
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:600px){
+  .top3-grid{grid-template-columns:repeat(2,1fr);}
+  .modal-top{grid-template-columns:1fr;}
+  .modal-poster{width:100%;min-height:160px;border-radius:24px 24px 0 0;}
+  .dna-name{width:110px;}
+}
+@media(max-width:380px){
+  .top3-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="page-bg"></div>
+<div class="page-grid"></div>
+<div class="sig"><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div><div class="s"></div></div>
+
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-mark">SS</div>
+    <span class="nav-name">Shivam Sharma</span>
+  </a>
+  <a class="nav-back" href="#">← Back</a>
+</nav>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <header class="hero reveal">
+    <div class="hero-eye"><span class="dot"></span> ENGINEERING SYSTEMS LOG</div>
+    <h1>Decision Systems</h1>
+    <div class="hero-rule">Mental models & execution frameworks I use to build</div>
+    <p>Not a watchlist — these are the decision engines, trade-off patterns, and leverage models I actively apply when designing systems and shipping code.</p>
+    <div class="hero-chip">🎯 For engineers who think in systems, not features</div>
+    <div class="divider"></div>
+  </header>
+
+  <!-- WHY -->
+  <section class="why-box reveal">
+    <div class="why-eye">// why this page exists</div>
+    <p>I read manhwa & watch anime the way engineers read post-mortems. <strong>Plot is noise; decision-making patterns are the signal.</strong> The protagonists here all share one trait: they solve hard problems with incomplete information under constraints. That's engineering, not magic. Every title below left a decision framework embedded in my thinking — and <strong>I actively use them while building systems.</strong></p>
+    <div class="eng-tag">⚡ Applied in engineering: system design reviews · risk modeling · resource allocation under ambiguity</div>
+  </section>
+
+  <!-- TOP 3 -->
+  <section class="top3-sec">
+    <div class="sec-head reveal">
+      <span class="sec-label">Key Systems That Shaped My Thinking</span>
+      <span class="sec-badge">★ core frameworks</span>
+    </div>
+    <div class="top3-grid reveal">
+
+      <div class="t3-card rank1" data-id="sl">
+        <div class="t3-rank r1">#1</div>
+        <div class="t3-tag tag-fw">★ framework</div>
+        <div class="t3-img-wrap">
+          <img src="https://cdn.myanimelist.net/images/manga/3/222295.jpg" alt="Solo Leveling" loading="lazy">
+        </div>
+        <div class="t3-info">
+          <div class="t3-title">Solo Leveling</div>
+          <div class="t3-line">daily compounding = unfair advantage</div>
+        </div>
+      </div>
+
+      <div class="t3-card" data-id="fri">
+        <div class="t3-rank r2">#2</div>
+        <div class="t3-tag tag-anime">◈ mental model</div>
+        <div class="t3-img-wrap">
+          <img src="https://cdn.myanimelist.net/images/anime/1015/138006.jpg" alt="Frieren" loading="lazy">
+        </div>
+        <div class="t3-info">
+          <div class="t3-title">Frieren</div>
+          <div class="t3-line">presence & second chances</div>
+        </div>
+      </div>
+
+      <div class="t3-card" data-id="orv">
+        <div class="t3-rank r3">#3</div>
+        <div class="t3-tag tag-manhwa">⚡ system</div>
+        <div class="t3-img-wrap">
+          <img src="https://cdn.myanimelist.net/images/manga/2/225498.jpg" alt="Omniscient Reader" loading="lazy">
+        </div>
+        <div class="t3-info">
+          <div class="t3-title">Omniscient Reader</div>
+          <div class="t3-line">info asymmetry as leverage</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- MANHWA -->
+  <section class="cards-section">
+    <div class="sec-head reveal">
+      <span class="sec-icon">📖</span>
+      <span class="sec-name">Manhwa · Execution Models</span>
+      <span class="sec-count">5 titles</span>
+    </div>
+    <div class="cards-grid reveal">
+
+      <div class="mc" data-id="ged">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/manga/1/269553.jpg" alt="Greatest Estate Developer" loading="lazy">
+          <div class="mc-ftag">⚡ system</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Greatest Estate Developer</div>
+          <div class="mc-teaser">civil eng meets fantasy debt</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-manhwa">Manhwa</span>
+            <span class="mc-status">Reading</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="ops">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/manga/1/293455.jpg" alt="Overpowered Sword" loading="lazy">
+          <div class="mc-ftag">◈ trait</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Overpowered Sword</div>
+          <div class="mc-teaser">master the tool before using it</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-manhwa">Manhwa</span>
+            <span class="mc-status">Reading</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="sl">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/manga/3/222295.jpg" alt="Solo Leveling" loading="lazy">
+          <div class="mc-ftag">★ framework</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Solo Leveling</div>
+          <div class="mc-teaser">zero to hero = compounding</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-manhwa">Manhwa</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="orv">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/manga/2/225498.jpg" alt="Omniscient Reader" loading="lazy">
+          <div class="mc-ftag">⚡ system</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Omniscient Reader</div>
+          <div class="mc-teaser">info is the real weapon</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-manhwa">Manhwa</span>
+            <span class="mc-status">Reading</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="tbate">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/manga/1/199541.jpg" alt="TBATE" loading="lazy">
+          <div class="mc-ftag">◈ rebuild</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Beginning After The End</div>
+          <div class="mc-teaser">second chance, better choices</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-manhwa">Manhwa</span>
+            <span class="mc-status">Reading</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ANIME -->
+  <section class="cards-section">
+    <div class="sec-head reveal">
+      <span class="sec-icon">🎌</span>
+      <span class="sec-name">Anime · Architectural Archetypes</span>
+      <span class="sec-count">10 titles</span>
+    </div>
+    <div class="cards-grid reveal">
+
+      <div class="mc" data-id="fri">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1015/138006.jpg" alt="Frieren" loading="lazy">
+          <div class="mc-ftag">◈ presence</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Frieren</div>
+          <div class="mc-teaser">what you build vs what you notice</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="rez">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1522/128039.jpg" alt="Re:Zero" loading="lazy">
+          <div class="mc-ftag">⚡ fail-loop</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Re:Zero</div>
+          <div class="mc-teaser">failure is just more data</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Watching</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="kono">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/8/77831.jpg" alt="Konosuba" loading="lazy">
+          <div class="mc-ftag">★ mvp</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Konosuba</div>
+          <div class="mc-teaser">ship with garbage specs</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="csm">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1806/126216.jpg" alt="Chainsaw Man" loading="lazy">
+          <div class="mc-ftag">⚡ raw</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Chainsaw Man</div>
+          <div class="mc-teaser">honest motives > hero speech</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="silw">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1413/145053.jpg" alt="Silent Witch" loading="lazy">
+          <div class="mc-ftag">◈ quiet</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Silent Witch</div>
+          <div class="mc-teaser">code speaks louder than talks</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Watching</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="jjk">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1171/109222.jpg" alt="Jujutsu Kaisen" loading="lazy">
+          <div class="mc-ftag">★ commit</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Jujutsu Kaisen</div>
+          <div class="mc-teaser">no guarantee, still show up</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="aot">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1000/110531.jpg" alt="Attack on Titan" loading="lazy">
+          <div class="mc-ftag">◈ complexity</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Attack on Titan</div>
+          <div class="mc-teaser">trade-offs no one talks about</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="ds">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/1286/99889.jpg" alt="Demon Slayer" loading="lazy">
+          <div class="mc-ftag">⚡ empathy+</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Demon Slayer</div>
+          <div class="mc-teaser">understand then execute</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="dn">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/9/9453.jpg" alt="Death Note" loading="lazy">
+          <div class="mc-ftag">◈ adversarial</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Death Note</div>
+          <div class="mc-teaser">always assume an adversary</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mc" data-id="sg">
+        <div class="mc-cover">
+          <img src="https://cdn.myanimelist.net/images/anime/5/73199.jpg" alt="Steins;Gate" loading="lazy">
+          <div class="mc-ftag">⚡ cascade</div>
+          <div class="mc-play">▶</div>
+        </div>
+        <div class="mc-info">
+          <div class="mc-title">Steins;Gate</div>
+          <div class="mc-teaser">tiny change, giant blast radius</div>
+          <div class="mc-meta">
+            <span class="mc-type tag-anime">Anime</span>
+            <span class="mc-status">Completed</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-main">Built independently · Focused on systems thinking</div>
+  <div class="footer-sub"><a href="#">← Back to the work</a> &nbsp;·&nbsp; If the MC would give up here, I'd pick a better MC.</div>
+</footer>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal">
+    <div class="modal-top">
+      <div class="modal-poster">
+        <img id="m-img" src="" alt="">
+      </div>
+      <div class="modal-content">
+        <div class="modal-close-row">
+          <span class="modal-esc">ESC or tap outside</span>
+          <button class="modal-close" id="m-close">✕</button>
+        </div>
+        <div class="modal-type" id="m-type"></div>
+        <div class="modal-title" id="m-title"></div>
+        <div class="modal-alt" id="m-alt"></div>
+        <div class="m-label">Synopsis · system context</div>
+        <div id="m-synopsis"></div>
+        <div class="m-label" style="margin-top:12px;">Why I Connect With the MC</div>
+        <div class="modal-why" id="m-why"></div>
+        <div class="m-label">Applied Insight</div>
+        <div class="modal-insight" id="m-insight"></div>
+        <div class="m-label">Execution Traits · Story DNA</div>
+        <div class="dna-wrap" id="m-dna"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ─────────────────────────────────────────────────── */
+const imgMap = {
+  sl:"https://cdn.myanimelist.net/images/manga/3/222295.jpg",
+  fri:"https://cdn.myanimelist.net/images/anime/1015/138006.jpg",
+  orv:"https://cdn.myanimelist.net/images/manga/2/225498.jpg",
+  ged:"https://cdn.myanimelist.net/images/manga/1/269553.jpg",
+  ops:"https://cdn.myanimelist.net/images/manga/1/293455.jpg",
+  tbate:"https://cdn.myanimelist.net/images/manga/1/199541.jpg",
+  rez:"https://cdn.myanimelist.net/images/anime/1522/128039.jpg",
+  kono:"https://cdn.myanimelist.net/images/anime/8/77831.jpg",
+  csm:"https://cdn.myanimelist.net/images/anime/1806/126216.jpg",
+  silw:"https://cdn.myanimelist.net/images/anime/1413/145053.jpg",
+  jjk:"https://cdn.myanimelist.net/images/anime/1171/109222.jpg",
+  aot:"https://cdn.myanimelist.net/images/anime/1000/110531.jpg",
+  ds:"https://cdn.myanimelist.net/images/anime/1286/99889.jpg",
+  dn:"https://cdn.myanimelist.net/images/anime/9/9453.jpg",
+  sg:"https://cdn.myanimelist.net/images/anime/5/73199.jpg",
+};
+
+const typeStyle = {
+  Manhwa:"tag-manhwa",
+  Anime:"tag-anime",
+};
+
+const insightPrefix = {
+  sl:"📈 In systems:",fri:"🌿 In practice:",orv:"🧠 On real systems:",
+  ged:"🔧 In practice:",ops:"⚙️ In production:",tbate:"❤️ In product:",
+  rez:"🔄 In production:",kono:"💥 In practice:",csm:"⛓️ On real systems:",
+  silw:"🔇 In production:",jjk:"💀 In systems:",aot:"⚙️ On real systems:",
+  ds:"🌊 In practice:",dn:"📓 In adversarial:",sg:"⏱️ In production:",
+};
+
+const DATA = {
+  ged:{title:"Greatest Estate Developer",alt:"civil eng isekai",type:"Manhwa",
+    synopsis:"Civil engineer reincarnated uses math, physics & urban planning to transcend fantasy constraints.",
+    why:"Lloyd decomposes every problem into measurable sub-systems: resource allocation, ROI, infrastructure. Makes trade-offs explicit.",
+    applied:"Break down ambiguous features into isolated sub-problems. Same as debugging system bottlenecks — isolate, prioritize, rebuild.",
+    dna:[{n:"Systematic Decomposition",v:96},{n:"Resource Optimization",v:94},{n:"Build-First Mindset",v:93}]},
+
+  ops:{title:"Overpowered Sword",alt:"tool mastery",type:"Manhwa",
+    synopsis:"From zero talent to mastery by deep tool study and relentless internal exploration.",
+    why:"Leon treats the sword like a complex system — he learns internals before features. Deep mastery over surface-level power.",
+    applied:"Run small 'internals exploration' sessions on new stacks. Understanding how a tool fails is as valuable as success cases.",
+    dna:[{n:"Deep Tool Mastery",v:97},{n:"Zero-to-One",v:94},{n:"Understanding Internals",v:98}]},
+
+  sl:{title:"Solo Leveling",alt:"compound daily",type:"Manhwa",
+    synopsis:"Weakest hunter levels up through a daily grind system, compounding effort into exponential output.",
+    why:"Jinwoo embodies compounding returns. Show up every day, iterate, get 1% better. That's how reliable systems scale.",
+    applied:"Keep a 'daily delta' log: one small system improvement, refactor, or test per day. Over a quarter, that's unshakable velocity.",
+    dna:[{n:"Compound Daily Growth",v:100},{n:"System Discipline",v:99},{n:"Bottom-Up",v:95}]},
+
+  orv:{title:"Omniscient Reader",alt:"info asymmetry",type:"Manhwa",
+    synopsis:"A man enters the world of a novel he alone has read — meta-knowledge becomes the ultimate survival weapon.",
+    why:"Information leverage is the ultimate force multiplier. Kim Dokja models second-order effects before acting.",
+    applied:"Run blindspot analysis before design docs: 'What do I know that others don't? What do they know that I don't?'",
+    dna:[{n:"Info Asymmetry",v:99},{n:"Second-Order Thinking",v:97},{n:"Meta-Awareness",v:96}]},
+
+  tbate:{title:"The Beginning After The End",alt:"rebuild with intent",type:"Manhwa",
+    synopsis:"A reincarnated king chooses to build authentic connections over raw power in his second life.",
+    why:"Arthur uses experience not for dominance but to build human systems. Technical skill without empathy fails.",
+    applied:"Every code review includes a 'user impact' note. We're not shipping to a dashboard — we're shipping to people.",
+    dna:[{n:"Purpose Over Power",v:94},{n:"Empathy in Systems",v:91},{n:"Second Chance Leverage",v:95}]},
+
+  fri:{title:"Frieren",alt:"presence engineering",type:"Anime",
+    synopsis:"An elven mage reflects on decades of adventure and the connections she didn't notice until too late.",
+    why:"Shipping a product is one thing; being present for the aftermath is another. Observe long-term consequences.",
+    applied:"Post-launch schedule 'impact reviews' 3 months out. Did we actually solve the problem? Did we introduce debt?",
+    dna:[{n:"Long-term Awareness",v:100},{n:"Presence",v:98},{n:"Legacy",v:96}]},
+
+  rez:{title:"Re:Zero",alt:"failure loops",type:"Anime",
+    synopsis:"Die, restart, carry trauma. Each loop accumulates more signal for the next attempt.",
+    why:"Failures are data. Each loop gives new signal. True resilience is ugly — fundamental for debugging production.",
+    applied:"Blameless post-mortems + 'loop capture': after each incident, document what the previous loop missed. Makes failure a compiler.",
+    dna:[{n:"Failure-as-Signal",v:98},{n:"Resilience",v:97},{n:"Iteration",v:100}]},
+
+  kono:{title:"Konosuba",alt:"pragmatic chaos",type:"Anime",
+    synopsis:"A lazy but adaptive party solves fantasy problems in the worst possible — yet functional — way.",
+    why:"Ship under constraints. Kazuma uses what's available, not what's ideal. MVP thinking in fantasy form.",
+    applied:"Time-box 'perfect solution' fantasies. First working version in 2 hours, then iterate. Done beats delayed.",
+    dna:[{n:"Pragmatic MVP",v:95},{n:"Adaptability",v:94},{n:"Constraint-Driven",v:93}]},
+
+  csm:{title:"Chainsaw Man",alt:"honest drives",type:"Anime",
+    synopsis:"Denji wants basic needs — not saving the world. Ruthlessly honest about motivation.",
+    why:"Honest core motivation is underrated. Build because it solves real daily friction, not abstract heroism.",
+    applied:"Filter features through: 'What tangible pain does this remove?' No abstract heroics, just real-world delta.",
+    dna:[{n:"Honest Core",v:100},{n:"Simplicity",v:96},{n:"Anti-Idealism",v:92}]},
+
+  silw:{title:"Silent Witch",alt:"quiet competence",type:"Anime",
+    synopsis:"A shy prodigy mage gets results without boasting — her magic speaks for itself.",
+    why:"Silent excellence is underrated. Build something undeniable, let the results do the talking.",
+    applied:"Let metrics + shipped code speak. Internal documentation > internal politics. Competence shows in logs.",
+    dna:[{n:"Quiet Competence",v:98},{n:"Results-Driven",v:97},{n:"Work as Argument",v:99}]},
+
+  jjk:{title:"Jujutsu Kaisen",alt:"commitment",type:"Anime",
+    synopsis:"Sorcerers die randomly; Yuji keeps committing to the mission without guarantee of outcome.",
+    why:"Not optimism — just commitment. Ship even when the outcome is uncertain. Commitment is a decision, not a feeling.",
+    applied:"Treat high-risk refactors as 'committed bets' — define rollback threshold, then go all-in. No half measures.",
+    dna:[{n:"Commitment",v:97},{n:"Uncertainty Tolerance",v:96},{n:"Decisive Action",v:95}]},
+
+  aot:{title:"Attack on Titan",alt:"moral systems",type:"Anime",
+    synopsis:"A world where freedom has a cost — every decision carries hidden trade-offs and moral weight.",
+    why:"Eren is a mirror: conviction doesn't equal righteousness. Every system design has a hidden cost.",
+    applied:"Run adversarial trade-off mapping before major decisions. What's the hidden cost? Who gets excluded?",
+    dna:[{n:"Moral Complexity",v:100},{n:"Trade-off Clarity",v:97},{n:"Systems Thinking",v:96}]},
+
+  ds:{title:"Demon Slayer",alt:"empathy + resolve",type:"Anime",
+    synopsis:"Tanjiro feels deep empathy for every demon he encounters — then defeats them decisively anyway.",
+    why:"Understand constraints fully, then act decisively. Empathy does not paralyze execution.",
+    applied:"During bug triage, empathize with user context but still kill the defect fast. Understanding without mercy for broken states.",
+    dna:[{n:"Empathy+Resolve",v:100},{n:"Decisive Action",v:95},{n:"Human-Centered",v:93}]},
+
+  dn:{title:"Death Note",alt:"adversarial design",type:"Anime",
+    synopsis:"A cat-and-mouse game built entirely on second-order thinking and adversarial modeling.",
+    why:"Every system has adversaries. Think three steps ahead, simulate edge cases, design for manipulation.",
+    applied:"Threat-model user stories: 'If someone wanted to break this, how?' Then patch before the incident.",
+    dna:[{n:"Adversarial Thinking",v:100},{n:"Second-Order",v:99},{n:"Threat Modeling",v:97}]},
+
+  sg:{title:"Steins;Gate",alt:"cascade effects",type:"Anime",
+    synopsis:"A scientist discovers time travel — and learns that the smallest change creates catastrophic downstream cascades.",
+    why:"Small change, massive downstream effects. Test obsessively, respect hidden dependencies.",
+    applied:"PRs must include a 'cascade checklist' — what three things could this break indirectly? Makes dependency hell visible.",
+    dna:[{n:"Cascade Awareness",v:100},{n:"Edge-Case Thinking",v:98},{n:"Causality Modeling",v:97}]},
+};
+
+/* ── MODAL OPEN/CLOSE ─────────────────────────────────────── */
+const overlay = document.getElementById('overlay');
+const modal   = document.getElementById('modal');
+
+function openModal(id) {
+  const d = DATA[id];
+  if (!d) return;
+
+  document.getElementById('m-img').src = imgMap[id] || '';
+  document.getElementById('m-img').alt = d.title;
+
+  const typeEl = document.getElementById('m-type');
+  typeEl.textContent = d.type;
+  typeEl.className = 'modal-type ' + (typeStyle[d.type] || '');
+
+  document.getElementById('m-title').textContent  = d.title;
+  document.getElementById('m-alt').textContent    = d.alt;
+  document.getElementById('m-synopsis').innerHTML = `<p class="m-para">${d.synopsis}</p>`;
+  document.getElementById('m-why').innerHTML      = `<p class="m-para">${d.why}</p>`;
+  document.getElementById('m-insight').innerHTML  = `${insightPrefix[id]||'🔧 Applied:'} ${d.applied}`;
+
+  // DNA bars
+  const dnaWrap = document.getElementById('m-dna');
+  dnaWrap.innerHTML = '';
+  const colors = ['c0','c1','c2','c3'];
+  d.dna.forEach((tr, i) => {
+    const row = document.createElement('div');
+    row.className = 'dna-row';
+    row.innerHTML = `
+      <div class="dna-name">${tr.n}</div>
+      <div class="dna-track"><div class="dna-fill ${colors[i%4]}" data-v="${tr.v/100}"></div></div>
+      <div class="dna-pct">${tr.v}%</div>`;
+    dnaWrap.appendChild(row);
+  });
+
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // animate bars after paint
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      dnaWrap.querySelectorAll('.dna-fill').forEach(b => {
+        b.style.transform = `scaleX(${b.dataset.v})`;
+      });
+    });
+  });
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  // reset bars
+  document.querySelectorAll('.dna-fill').forEach(b => b.style.transform = 'scaleX(0)');
+}
+
+// bind cards
+document.querySelectorAll('.t3-card, .mc').forEach(c => {
+  c.addEventListener('click', () => openModal(c.dataset.id));
+  c.setAttribute('tabindex','0');
+  c.setAttribute('role','button');
+  c.addEventListener('keydown', e => { if(e.key==='Enter') openModal(c.dataset.id); });
+});
+
+document.getElementById('m-close').addEventListener('click', closeModal);
+overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ── REVEAL on SCROLL ─────────────────────────────────────── */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold: 0.08 });
+revealEls.forEach(el => io.observe(el));
+</script>
+</body>
+</html>
