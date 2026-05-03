@@ -1,407 +1,671 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dual Deployment Pipeline — Shivam Sharma</title>
-<meta name="description" content="Smart routing across Railway + Render: cold-start prevention, self-ping keep-alive, SSRF protection, sequential failover, and GitHub-connected CI/CD."/>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23030507'/%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%234f8fff'/%3E%3Cstop offset='1' stop-color='%239b5fff'/%3E%3C/linearGradient%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)' opacity='.9'/%3E%3Ctext x='5' y='23' font-family='Arial Black,sans-serif' font-size='17' font-weight='900' fill='white'%3ESS%3C/text%3E%3C/svg%3E"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Decision Systems · Shivam Sharma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#030507;--surface:rgba(255,255,255,.04);--border:rgba(255,255,255,.08);--accent:#4f8fff;--accent2:#00e5ff;--accent3:#9b5fff;--text:#e8eaf0;--muted:#6b7280;--green:#00e57a;}
+:root{
+  --bg:#0c0b09;--surface:#141210;--card:#1b1916;--card-h:#211f1b;
+  --border:rgba(210,190,145,.09);--border-h:rgba(210,190,145,.22);
+  --t1:#ede7d6;--t2:#8a7f6c;--t3:#4a4438;
+  --gold:#c49a40;--gold-border:rgba(196,154,64,.22);
+  --green:#4a7258;--r:10px;
+}
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;}
-::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:rgba(79,143,255,.3);border-radius:4px;}
-#pt{position:fixed;inset:0;z-index:999;background:var(--bg);opacity:1;transition:opacity .45s ease;pointer-events:none;}
-.noise{position:fixed;inset:0;pointer-events:none;z-index:200;opacity:.018;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:180px;}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:16px 5%;background:rgba(3,5,7,.85);backdrop-filter:blur(24px);border-bottom:1px solid rgba(255,255,255,.05);}
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
-.nav-logo-mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:.78rem;font-weight:800;color:#fff;}
-.nav-logo-text{font-family:'Syne',sans-serif;font-size:.86rem;font-weight:600;background:linear-gradient(90deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.back-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;text-decoration:none;transition:all .2s;}
-.back-btn:hover{border-color:rgba(79,143,255,.3);color:var(--accent);background:rgba(79,143,255,.06);}
-.back-btn svg{width:14px;height:14px;}
+body{background:var(--bg);color:var(--t1);font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");}
+body::after{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 85% 85% at 50% 50%,transparent 35%,rgba(8,7,5,.5) 100%);}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--t3);border-radius:4px;}
+#prog{position:fixed;top:0;left:0;z-index:9999;height:1.5px;width:0%;background:var(--gold);pointer-events:none;}
 
-/* Hero */
-.proj-hero{padding:140px 5% 80px;max-width:1100px;margin:0 auto;}
-.proj-title{font-family:'Syne',sans-serif;font-size:clamp(2.2rem,5vw,4.8rem);font-weight:800;line-height:1.05;letter-spacing:-.03em;margin-bottom:20px;}
-.proj-title .gr{background:linear-gradient(135deg,#4f8fff,#00e5ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-.proj-tagline{font-size:clamp(.95rem,1.9vw,1.15rem);color:var(--muted);font-weight:300;line-height:1.7;max-width:680px;margin-bottom:36px;}
-.proj-cta-row{display:flex;gap:12px;flex-wrap:wrap;}
-.btn-live{padding:12px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:9px;color:#fff;font-family:'DM Sans',sans-serif;font-size:.87rem;font-weight:500;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s;box-shadow:0 0 24px rgba(79,143,255,.3);}
-.btn-live:hover{transform:translateY(-2px);box-shadow:0 0 42px rgba(79,143,255,.55);}
-.btn-gh{padding:12px 24px;background:transparent;border:1px solid rgba(255,255,255,.12);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.87rem;font-weight:400;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:all .2s;}
-.btn-gh:hover{border-color:rgba(79,143,255,.4);background:rgba(79,143,255,.06);transform:translateY(-2px);}
-.btn-gh svg,.btn-live svg{width:15px;height:15px;flex-shrink:0;}
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 4%;background:rgba(12,11,9,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.lmark{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#1e1a12,#2a2318);border:1px solid var(--gold-border);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:11px;color:var(--gold);}
+.lname{font-family:'Playfair Display',serif;font-weight:500;font-size:.88rem;color:var(--t1);}
+.nav-r{display:flex;align-items:center;gap:12px;}
+.sw{position:relative;display:flex;align-items:center;}
+.sw svg{position:absolute;left:10px;color:var(--t3);width:12px;height:12px;pointer-events:none;}
+#si{background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--t1);padding:6px 12px 6px 30px;font-size:.75rem;font-family:inherit;width:148px;outline:none;transition:border-color .2s,width .3s;}
+#si:focus{border-color:var(--gold-border);width:188px;}
+#si::placeholder{color:var(--t3);}
+.ntag{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--t3);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:4px;letter-spacing:1px;text-transform:uppercase;display:none;}
+@media(min-width:560px){.ntag{display:block;}}
 
-/* Stats */
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:60px 0;}
-.stat-item{background:var(--surface);padding:24px 20px;text-align:center;}
-.stat-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:5px;}
-.stat-lbl{font-size:.72rem;color:var(--muted);letter-spacing:.06em;}
+/* WRAP */
+.wrap{max-width:1360px;margin:0 auto;padding:0 3.5% 80px;position:relative;z-index:1;}
 
-/* Body */
-.proj-body{max-width:1100px;margin:0 auto;padding:0 5% 100px;}
-.sec{margin-bottom:72px;}
-.sec-label{font-size:.66rem;font-weight:400;letter-spacing:.24em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
-.sec-label::before{content:'';width:20px;height:1px;background:var(--accent);}
-.sec-h{font-family:'Syne',sans-serif;font-size:clamp(1.5rem,3vw,2.2rem);font-weight:700;line-height:1.2;letter-spacing:-.01em;margin-bottom:22px;}
-.sec-p{font-size:.97rem;color:var(--muted);line-height:1.85;margin-bottom:16px;}
-.sec-p strong{color:var(--text);font-weight:500;}
+/* HERO */
+.hero{padding:52px 0 40px;display:flex;flex-wrap:wrap;gap:28px;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--border);margin-bottom:40px;}
+.hl{flex:1;min-width:220px;animation:riseup .8s .1s ease both;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;}
+.eyebrow::before{content:'';width:20px;height:1px;background:var(--gold);opacity:.6;}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.8rem,8vw,5rem);font-weight:900;letter-spacing:-.02em;line-height:1.0;color:var(--t1);}
+.hero h1 em{font-style:italic;font-weight:400;color:var(--gold);}
+.hsub{color:var(--t2);font-size:.88rem;max-width:440px;margin-top:14px;line-height:1.7;font-weight:300;}
+.now-reading{display:inline-flex;align-items:center;gap:8px;margin-top:18px;border:1px solid var(--border);padding:7px 13px;border-radius:4px;font-size:.68rem;color:var(--t2);font-family:'JetBrains Mono',monospace;background:var(--surface);}
+.now-reading span{color:var(--t1);}
+.hstats{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0;align-self:flex-end;animation:riseup .8s .25s ease both;}
+.stat{padding:18px 26px;text-align:center;position:relative;}
+.stat+.stat::before{content:'';position:absolute;left:0;top:20%;height:60%;width:1px;background:var(--border);}
+.sn{font-family:'Playfair Display',serif;font-weight:700;font-size:2rem;color:var(--t1);line-height:1;display:block;}
+.sl{font-size:.58rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-top:5px;display:block;font-family:'JetBrains Mono',monospace;}
 
-/* Pipeline diagram */
-.pipeline{display:flex;flex-direction:column;gap:0;margin-top:24px;}
-.pipeline-step{display:flex;align-items:stretch;gap:0;}
-.pipe-left{display:flex;flex-direction:column;align-items:center;width:48px;flex-shrink:0;}
-.pipe-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 0 10px rgba(79,143,255,.5);flex-shrink:0;margin-top:18px;}
-.pipe-line{width:2px;flex:1;background:linear-gradient(to bottom,rgba(79,143,255,.4),rgba(0,229,255,.2));margin-left:-1px;}
-.pipe-line.last{display:none;}
-.pipe-content{flex:1;padding:14px 0 14px 16px;margin-bottom:8px;}
-.pipe-box{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:16px 20px;transition:border-color .2s;}
-.pipe-box:hover{border-color:rgba(79,143,255,.25);}
-.pipe-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;margin-bottom:5px;display:flex;align-items:center;gap:9px;}
-.pipe-title .icon{font-size:1.1rem;}
-.pipe-desc{font-size:.81rem;color:var(--muted);line-height:1.6;}
-.pipe-tag{display:inline-block;font-size:.62rem;padding:2px 8px;border-radius:100px;background:rgba(79,143,255,.1);border:1px solid rgba(79,143,255,.18);color:var(--accent);margin-left:8px;vertical-align:middle;}
-.pipe-tag.green{background:rgba(0,229,122,.1);border-color:rgba(0,229,122,.2);color:var(--green);}
-.pipe-tag.cyan{background:rgba(0,229,255,.1);border-color:rgba(0,229,255,.2);color:var(--accent2);}
+/* SHELF */
+.shelf{margin:0 0 48px;animation:riseup .7s .35s ease both;}
+.shelfh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+.shelfh h3{font-family:'Playfair Display',serif;font-weight:500;font-size:1.0rem;color:var(--t2);}
+.shelfhint{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--t3);}
+.sx{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;scrollbar-width:thin;}
+.sx::-webkit-scrollbar{height:2px;}
+.sx::-webkit-scrollbar-thumb{background:var(--t3);}
 
-/* Feature grid */
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:24px;}
-.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:22px;transition:border-color .2s,transform .2s;}
-.feat-card:hover{border-color:rgba(79,143,255,.25);transform:translateY(-2px);}
-.feat-icon{font-size:1.5rem;margin-bottom:12px;}
-.feat-name{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:7px;}
-.feat-desc{font-size:.82rem;color:var(--muted);line-height:1.65;}
+/* SHELF CARD */
+.sc{flex:0 0 118px;border-radius:8px;overflow:hidden;background:var(--card);border:1px solid var(--border);cursor:pointer;scroll-snap-align:start;transition:transform .25s,border-color .25s,box-shadow .25s;position:relative;}
+.sc:hover{border-color:var(--border-h);box-shadow:0 10px 32px rgba(0,0,0,.6);transform:translateY(-2px);}
+.sc.feat{border-color:var(--gold-border);}
+.scov{aspect-ratio:2/3;overflow:hidden;position:relative;background:#111009;}
+.scov img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform .4s,opacity .35s;}
+.scov img.ok{opacity:1;}
+.sc:hover .scov img{transform:scale(1.06);}
+.sovl{position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,rgba(10,9,7,.9),transparent);pointer-events:none;}
+.sc-score{position:absolute;top:6px;right:6px;background:rgba(10,9,7,.84);border:1px solid var(--gold-border);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.5rem;color:var(--gold);padding:2px 5px;backdrop-filter:blur(4px);}
+.sinf{padding:8px 9px 10px;}
+.stit{font-family:'Playfair Display',serif;font-weight:700;font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1);}
+.ssub{font-size:.52rem;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
 
-/* Code */
-.code-block{background:rgba(0,0,0,.55);border:1px solid rgba(79,143,255,.15);border-radius:11px;padding:20px 22px;margin-top:20px;font-family:'Courier New',monospace;font-size:.8rem;color:#c9d1d9;line-height:1.75;overflow-x:auto;}
-.code-block .kw{color:#ff7b72;}
-.code-block .str{color:#a5d6ff;}
-.code-block .cm{color:#8b949e;font-style:italic;}
-.code-block .fn{color:#d2a8ff;}
-.code-block .num{color:#79c0ff;}
+/* SECTION */
+.sec{margin-top:56px;}
+.sectit{font-family:'Playfair Display',serif;font-weight:600;font-size:1.15rem;display:flex;align-items:center;gap:12px;margin-bottom:16px;color:var(--t1);animation:riseup .6s ease both;}
+.cbadge{font-size:.6rem;font-family:'JetBrains Mono',monospace;background:var(--surface);border:1px solid var(--border);padding:3px 10px;border-radius:4px;color:var(--t3);}
+.section-rule{height:1px;background:var(--border);margin:0 0 18px;}
 
-/* Stack */
-.stack-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:16px;}
-.stack-pill{font-size:.75rem;font-weight:400;padding:7px 14px;border-radius:100px;background:rgba(79,143,255,.07);border:1px solid rgba(79,143,255,.15);color:var(--accent);}
-.stack-pill.cyan{background:rgba(0,229,255,.07);border-color:rgba(0,229,255,.15);color:var(--accent2);}
-.stack-pill.purple{background:rgba(155,95,255,.07);border-color:rgba(155,95,255,.15);color:var(--accent3);}
-.stack-pill.green{background:rgba(0,229,122,.07);border-color:rgba(0,229,122,.15);color:var(--green);}
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+@media(max-width:400px){.grid{grid-template-columns:repeat(2,1fr);gap:8px;}}
 
-/* Comparison table */
-.compare-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:.84rem;}
-.compare-table th{text-align:left;padding:12px 16px;background:rgba(79,143,255,.07);color:var(--accent);font-family:'Syne',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
-.compare-table th:first-child{border-radius:10px 0 0 0;}
-.compare-table th:last-child{border-radius:0 10px 0 0;}
-.compare-table td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.04);color:var(--muted);}
-.compare-table td strong{color:var(--text);}
-.compare-table tr:hover td{background:rgba(255,255,255,.02);}
-.compare-table .good{color:var(--green);}
-.compare-table .warn{color:#ffb347;}
+/* CARD */
+.card{background:var(--card);border-radius:var(--r);overflow:hidden;border:1px solid var(--border);cursor:pointer;position:relative;opacity:0;transform:translateY(20px);}
+.card.vis{opacity:1;transform:translateY(0);transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s,background .2s;}
+.card:hover{border-color:var(--border-h);box-shadow:0 14px 40px rgba(0,0,0,.65);background:var(--card-h);}
+.card.feat{border-color:var(--gold-border);}
 
-/* Footer */
-footer{border-top:1px solid rgba(255,255,255,.05);padding:28px 5%;display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;}
-.footer-text{font-size:.75rem;color:var(--muted);}
-.footer-links{display:flex;gap:20px;}
-.footer-links a{font-size:.75rem;color:var(--muted);text-decoration:none;transition:color .2s;}
-.footer-links a:hover{color:var(--accent);}
+/* IMAGE shimmer skeleton */
+.cimg{aspect-ratio:2/3;overflow:hidden;position:relative;background:#17150f;}
+.cimg::before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,transparent,rgba(196,154,64,.06),transparent);animation:shimmer 1.8s ease-in-out infinite;}
+.cimg img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform .4s,opacity .35s;position:relative;z-index:2;}
+.cimg img.ok{opacity:1;}
+.cimg.done::before{display:none;}
+.card:hover .cimg img{transform:scale(1.05);}
+@keyframes shimmer{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}
 
-@media(max-width:768px){
-  .stats-bar{grid-template-columns:1fr 1fr;}
-  .proj-cta-row{flex-direction:column;}
-  footer{flex-direction:column;gap:12px;text-align:center;}
-  .compare-table{display:block;overflow-x:auto;}
+.covl{position:absolute;inset:0;z-index:3;background:linear-gradient(to top,rgba(10,9,7,.88) 0%,rgba(10,9,7,.08) 45%,transparent 70%);pointer-events:none;}
+.cscore{position:absolute;top:7px;right:7px;z-index:4;background:rgba(8,7,5,.86);border:1px solid var(--gold-border);border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--gold);padding:2px 6px;backdrop-filter:blur(6px);}
+.cimg-tag{position:absolute;bottom:7px;left:7px;z-index:4;font-family:'JetBrains Mono',monospace;font-size:.46rem;padding:2px 6px;border-radius:3px;text-transform:uppercase;background:rgba(8,7,5,.76);border:1px solid var(--border);color:var(--t3);backdrop-filter:blur(4px);}
+
+/* ✅ COMPLETED BADGE — new */
+.ccomplete{
+  position:absolute;top:7px;left:7px;z-index:5;
+  display:flex;align-items:center;gap:3px;
+  background:rgba(36,80,52,.92);
+  border:1px solid rgba(90,160,110,.45);
+  border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.44rem;color:#7ee8a2;
+  padding:2px 6px;backdrop-filter:blur(6px);
+  letter-spacing:.4px;text-transform:uppercase;
+  font-weight:500;
+  box-shadow:0 0 8px rgba(74,180,100,.12);
 }
+.ccomplete::before{content:'✓';font-size:.55rem;}
+
+/* shelf completed badge */
+.sc-complete{
+  position:absolute;top:6px;left:6px;z-index:5;
+  display:flex;align-items:center;gap:2px;
+  background:rgba(36,80,52,.9);
+  border:1px solid rgba(90,160,110,.4);
+  border-radius:3px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.42rem;color:#7ee8a2;
+  padding:2px 5px;backdrop-filter:blur(4px);
+  letter-spacing:.3px;
+}
+.sc-complete::before{content:'✓';}
+
+.cinf{padding:7px 9px 9px;}
+.ctit{font-family:'Playfair Display',serif;font-weight:700;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--t1);line-height:1.3;}
+.cline{font-size:.57rem;color:var(--gold);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85;}
+.cmeta{display:flex;align-items:center;gap:5px;margin-top:5px;flex-wrap:wrap;}
+.ctag-chip{font-size:.48rem;font-family:'JetBrains Mono',monospace;background:rgba(196,154,64,.07);border:1px solid rgba(196,154,64,.14);color:rgba(196,154,64,.7);padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.cstatus{font-size:.46rem;font-family:'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.cstatus.done{background:rgba(74,114,88,.12);color:#5a9470;border:1px solid rgba(74,114,88,.2);}
+.cstatus.watch{background:rgba(210,190,145,.07);color:var(--t2);border:1px solid var(--border);}
+.cstatus.hold{background:rgba(139,53,53,.1);color:#a05050;border:1px solid rgba(139,53,53,.2);}
+.imgfb{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;font-family:'Playfair Display',serif;font-style:italic;font-size:.62rem;color:var(--t3);background:linear-gradient(135deg,#141210,#1a1714);}
+
+/* MODAL */
+.mov{position:fixed;inset:0;z-index:500;background:rgba(6,5,4,.93);backdrop-filter:blur(20px);display:flex;align-items:flex-end;justify-content:center;visibility:hidden;opacity:0;transition:visibility 0s .3s,opacity .3s ease;padding:0;}
+.mov.open{visibility:visible;opacity:1;transition:opacity .3s ease;}
+.mbox{width:100%;max-width:640px;background:#191711;border-radius:16px 16px 0 0;border:1px solid var(--border);border-bottom:none;transform:translateY(100%);transition:transform .38s cubic-bezier(.34,1.4,.64,1);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+.mov.open .mbox{transform:translateY(0);}
+.mdrag{width:40px;height:3px;background:var(--border);border-radius:4px;margin:12px auto 0;flex-shrink:0;}
+.mbody{overflow-y:auto;padding:16px 20px 32px;}
+.minn{display:flex;gap:16px;align-items:flex-start;}
+.mposter{flex:0 0 108px;border-radius:8px;overflow:hidden;background:#141210;border:1px solid var(--border);aspect-ratio:2/3;position:relative;}
+.mposter img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s;}
+.mposter img.ok{opacity:1;}
+.mcont{flex:1;min-width:0;}
+.mcls{float:right;background:none;border:none;color:var(--t3);font-size:16px;cursor:pointer;padding:0;line-height:1;transition:color .2s;font-family:'JetBrains Mono',monospace;}
+.mcls:hover{color:var(--t1);}
+.mtyp{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin-top:2px;}
+.mtit{font-family:'Playfair Display',serif;font-weight:800;font-size:1.3rem;letter-spacing:-.01em;color:var(--t1);margin-top:6px;line-height:1.2;padding-right:24px;}
+.mrating{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap;}
+.mscore-big{display:flex;align-items:baseline;gap:3px;}
+.mscore-num{font-family:'Playfair Display',serif;font-weight:700;font-size:1.8rem;color:var(--gold);}
+.mscore-out{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--t3);}
+.mstars{font-size:.8rem;color:var(--gold);letter-spacing:1px;}
+.mscore-bar-wrap{margin:8px 0 2px;width:100%;height:4px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;}
+.mscore-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--gold),#e8c060);transition:width .6s cubic-bezier(.34,1.1,.64,1);}
+.mmeta-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+.mmeta-pill{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--t2);background:var(--surface);border:1px solid var(--border);padding:3px 8px;border-radius:3px;}
+.mmeta-pill.done-pill{background:rgba(74,114,88,.1);color:#5a9470;border-color:rgba(74,114,88,.2);}
+.mdiv{height:1px;background:var(--border);margin:14px 0;}
+.msyn-label{font-family:'JetBrains Mono',monospace;font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.mdesc{color:var(--t1);font-size:.84rem;line-height:1.75;font-weight:300;opacity:.88;}
+.mins{margin-top:0;padding:13px 15px;background:rgba(196,154,64,.05);border-left:2px solid var(--gold);border-radius:0 6px 6px 0;font-size:.78rem;color:var(--t2);line-height:1.65;}
+.mins strong{color:var(--gold);display:block;margin-bottom:5px;font-family:'JetBrains Mono',monospace;font-size:.58rem;text-transform:uppercase;letter-spacing:1px;font-weight:500;}
+.mmal-btn{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:9px 18px;border-radius:5px;background:var(--surface);border:1px solid var(--border);color:var(--t2);font-size:.72rem;font-family:'JetBrains Mono',monospace;text-decoration:none;letter-spacing:.3px;transition:border-color .2s,color .2s,background .2s;}
+.mmal-btn:hover{border-color:var(--gold-border);color:var(--gold);background:rgba(196,154,64,.06);}
+.mmal-btn svg{width:11px;height:11px;}
+@media(min-width:600px){.mov{align-items:center;padding:20px;}.mbox{border-radius:14px;border-bottom:1px solid var(--border);max-height:80vh;}.mdrag{display:none;}}
+
+@keyframes riseup{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+
+footer{margin-top:70px;padding:28px 0 20px;border-top:1px solid var(--border);text-align:center;}
+footer p{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--t3);letter-spacing:.5px;}
+footer p+p{margin-top:7px;color:var(--t2);font-style:italic;font-family:'Playfair Display',serif;font-size:.7rem;}
+.nores{display:none;grid-column:1/-1;text-align:center;padding:40px;color:var(--t3);font-family:'Playfair Display',serif;font-style:italic;}
 </style>
 </head>
 <body>
-<div id="pt"></div>
-<div class="noise"></div>
-
-<nav>
-  <a class="nav-logo" href="../index.html">
-    <div class="nav-logo-mark">SS</div>
-    <span class="nav-logo-text">Shivam Sharma</span>
+<div id="prog"></div>
+<nav class="nav">
+  <a class="logo" href="#">
+    <div class="lmark">SS</div>
+    <div class="lname">Shivam Sharma</div>
   </a>
-  <a class="back-btn" href="../index.html">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to Portfolio
-  </a>
+  <div class="nav-r">
+    <div class="sw">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="si" type="text" placeholder="Search titles…" autocomplete="off">
+    </div>
+    <div class="ntag">Decision Logs / v6</div>
+  </div>
 </nav>
 
-<div class="proj-hero">
-  <h1 class="proj-title"><span class="gr">Dual Deployment</span> Pipeline</h1>
-  <p class="proj-tagline">A production DevOps architecture spanning two cloud platforms — Railway and Render — with client-side smart failover, cold-start prevention via self-ping keep-alive, SSRF-hardened proxy routing, and fully automated GitHub-triggered CI/CD deploys on every push.</p>
-  <div class="proj-cta-row">
-    <a href="https://videodownloader-iicl.onrender.com" target="_blank" rel="noopener noreferrer" class="btn-live">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-      Live System
-    </a>
-    <a href="https://github.com/sharmashivam9109-debug/videodownloader" target="_blank" rel="noopener noreferrer" class="btn-gh">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
-      View on GitHub
-    </a>
-  </div>
-</div>
-
-<div class="stats-bar">
-  <div class="stat-item"><div class="stat-num">2</div><div class="stat-lbl">Cloud Providers</div></div>
-  <div class="stat-item"><div class="stat-num">CI/CD</div><div class="stat-lbl">Auto-Deploy</div></div>
-  <div class="stat-item"><div class="stat-num">0ms</div><div class="stat-lbl">Manual Ops</div></div>
-  <div class="stat-item"><div class="stat-num">99%+</div><div class="stat-lbl">Uptime Target</div></div>
-</div>
-
-<div class="proj-body">
-
-  <!-- Overview -->
-  <div class="sec">
-    <div class="sec-label">Overview</div>
-    <h2 class="sec-h">Why Two Servers?</h2>
-    <p class="sec-p">Free-tier cloud platforms like Railway and Render spin down idle servers after inactivity — cold starts can take 15–30 seconds. A single-server architecture means users hit that cold start directly. The dual-server approach solves this.</p>
-    <p class="sec-p">Both <strong>Railway</strong> (primary) and <strong>Render</strong> (fallback) run identical Flask apps, deployed from the same GitHub repo via separate connected projects. The client-side JavaScript races both servers simultaneously on first load — whichever responds first becomes the active server for that session.</p>
-    <p class="sec-p">A <strong>self-ping keep-alive</strong> scheduler runs on each server, calling its own <code style="background:rgba(255,255,255,.06);padding:2px 6px;border-radius:4px;font-size:.85em;">/health</code> endpoint every 10 minutes to prevent cold starts. SSRF guards on the proxy endpoint prevent the ping mechanism from being weaponised to probe internal networks.</p>
-  </div>
-
-  <!-- Pipeline Steps -->
-  <div class="sec">
-    <div class="sec-label">Deployment Flow</div>
-    <h2 class="sec-h">From Code to Live in Seconds</h2>
-    <div class="pipeline">
-
-      <div class="pipeline-step">
-        <div class="pipe-left">
-          <div class="pipe-dot"></div>
-          <div class="pipe-line"></div>
-        </div>
-        <div class="pipe-content">
-          <div class="pipe-box">
-            <div class="pipe-title"><span class="icon">📝</span> Code Push to GitHub <span class="pipe-tag">Trigger</span></div>
-            <div class="pipe-desc">Developer pushes to <code>main</code> branch from Termux on Android. GitHub receives the push event and fires webhooks to both cloud providers simultaneously.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="pipe-left">
-          <div class="pipe-dot"></div>
-          <div class="pipe-line"></div>
-        </div>
-        <div class="pipe-content">
-          <div class="pipe-box">
-            <div class="pipe-title"><span class="icon">⚙️</span> Parallel Build <span class="pipe-tag cyan">Railway</span> <span class="pipe-tag">Render</span></div>
-            <div class="pipe-desc">Both platforms pull the latest commit, install Python dependencies from <code>requirements.txt</code>, and run <code>gunicorn app:app</code> as the entry point. Build logs are available in each platform's dashboard.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="pipe-left">
-          <div class="pipe-dot"></div>
-          <div class="pipe-line"></div>
-        </div>
-        <div class="pipe-content">
-          <div class="pipe-box">
-            <div class="pipe-title"><span class="icon">🔐</span> Environment Variables Injected <span class="pipe-tag green">Secure</span></div>
-            <div class="pipe-desc">Both platforms have identical env vars set in their dashboards: <code>RAPIDAPI_KEY</code>, <code>PROXY_SECRET</code>, <code>ONESIGNAL_APP_ID</code>, <code>ONESIGNAL_KEY</code>. These never touch the codebase or git history.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="pipe-left">
-          <div class="pipe-dot"></div>
-          <div class="pipe-line"></div>
-        </div>
-        <div class="pipe-content">
-          <div class="pipe-box">
-            <div class="pipe-title"><span class="icon">🏁</span> Health Check + Switchover <span class="pipe-tag green">Live</span></div>
-            <div class="pipe-desc">Client JS calls <code>/health</code> on both servers with a 6-second race timeout. First to respond wins. Railway typically wins due to faster cold starts. Render is the silent backup.</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pipeline-step">
-        <div class="pipe-left">
-          <div class="pipe-dot"></div>
-          <div class="pipe-line last"></div>
-        </div>
-        <div class="pipe-content">
-          <div class="pipe-box">
-            <div class="pipe-title"><span class="icon">🔄</span> Keep-Alive Loop <span class="pipe-tag cyan">Continuous</span></div>
-            <div class="pipe-desc">Each server pings its own <code>/health</code> every 10 minutes via a background APScheduler job. This prevents the 30s cold-start penalty. SSRF allowlist ensures only localhost pings are permitted.</div>
-          </div>
-        </div>
-      </div>
-
+<div class="wrap">
+  <div class="hero">
+    <div class="hl">
+      <div class="eyebrow">Mental Operating System</div>
+      <h1>Decision<br><em>Systems</em></h1>
+      <p class="hsub">Execution frameworks extracted from Manhwa, Novel &amp; Anime — solid architectural patterns for real system design.</p>
+      <div class="now-reading">Currently reading · <span>Lord of the Mysteries</span></div>
+    </div>
+    <div class="hstats">
+      <div class="stat"><span class="sn" data-t="11" data-s="">0</span><span class="sl">Manhwa</span></div>
+      <div class="stat"><span class="sn" data-t="84" data-s="+">0</span><span class="sl">Anime</span></div>
+      <div class="stat"><span class="sn" data-t="95" data-s="+">0</span><span class="sl">Frameworks</span></div>
     </div>
   </div>
 
-  <!-- Platform Comparison -->
-  <div class="sec">
-    <div class="sec-label">Platform Comparison</div>
-    <h2 class="sec-h">Railway vs Render</h2>
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th>Feature</th>
-          <th>Railway</th>
-          <th>Render</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Role</strong></td>
-          <td class="good">Primary server</td>
-          <td>Fallback server</td>
-        </tr>
-        <tr>
-          <td><strong>Cold Start</strong></td>
-          <td class="good">~5–8 seconds</td>
-          <td class="warn">~20–30 seconds</td>
-        </tr>
-        <tr>
-          <td><strong>Deploy Trigger</strong></td>
-          <td class="good">GitHub webhook (instant)</td>
-          <td class="good">GitHub webhook (instant)</td>
-        </tr>
-        <tr>
-          <td><strong>Custom Domain</strong></td>
-          <td class="good">Supported</td>
-          <td class="good">Supported</td>
-        </tr>
-        <tr>
-          <td><strong>Free Tier Limits</strong></td>
-          <td>$5 credit/month</td>
-          <td>750 hrs/month</td>
-        </tr>
-        <tr>
-          <td><strong>Env Vars UI</strong></td>
-          <td class="good">Dashboard + CLI</td>
-          <td class="good">Dashboard</td>
-        </tr>
-        <tr>
-          <td><strong>Uptime Guarantee</strong></td>
-          <td>Best-effort</td>
-          <td>Best-effort</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="shelf">
+    <div class="shelfh"><h3>Core frameworks &mdash; top picks</h3><span class="shelfhint">← scroll →</span></div>
+    <div class="sx" id="shelfEl"></div>
   </div>
 
-  <!-- Keep-Alive Code -->
   <div class="sec">
-    <div class="sec-label">Code Sample</div>
-    <h2 class="sec-h">Keep-Alive Scheduler</h2>
-    <div class="code-block"><span class="cm"># app.py — self-ping keep-alive with SSRF guard</span>
-<span class="kw">from</span> apscheduler.schedulers.background <span class="kw">import</span> BackgroundScheduler
-<span class="kw">import</span> requests, os
-
-ALLOWED_PING_HOST = <span class="str">"127.0.0.1"</span>  <span class="cm"># SSRF: only localhost allowed</span>
-
-<span class="kw">def</span> <span class="fn">keep_alive</span>():
-    port = os.environ.get(<span class="str">"PORT"</span>, <span class="str">"5000"</span>)
-    url = f<span class="str">"http://{ALLOWED_PING_HOST}:{port}/health"</span>
-    <span class="kw">try</span>:
-        r = requests.get(url, timeout=<span class="num">8</span>)
-        <span class="kw">if</span> r.status_code == <span class="num">200</span>:
-            print(<span class="str">"[keep-alive] OK"</span>)
-    <span class="kw">except</span> Exception <span class="kw">as</span> e:
-        print(f<span class="str">"[keep-alive] Failed: {e}"</span>)
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(keep_alive, <span class="str">"interval"</span>, minutes=<span class="num">10</span>)
-scheduler.start()
-
-<span class="cm"># Health endpoint</span>
-@app.route(<span class="str">"/health"</span>)
-<span class="kw">def</span> <span class="fn">health</span>():
-    <span class="kw">return</span> {<span class="str">"status"</span>: <span class="str">"ok"</span>, <span class="str">"server"</span>: os.environ.get(<span class="str">"SERVER_ID"</span>, <span class="str">"unknown"</span>)}, <span class="num">200</span>
-</div>
+    <div class="sectit">Manhwa &amp; Novel · Execution Models <span class="cbadge" id="mwCnt">11 systems</span></div>
+    <div class="section-rule"></div>
+    <div class="grid" id="mwGrid"><div class="nores" id="mwEmpty">No results found</div></div>
   </div>
 
-  <!-- Features -->
   <div class="sec">
-    <div class="sec-label">Features</div>
-    <h2 class="sec-h">Full Capability Set</h2>
-    <div class="feat-grid">
-      <div class="feat-card">
-        <div class="feat-icon">🏁</div>
-        <div class="feat-name">Client-Side Server Race</div>
-        <div class="feat-desc">Frontend fires parallel fetch to both server URLs. A Promise.race picks the winner. The losing request is aborted via AbortController.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">💓</div>
-        <div class="feat-name">Self-Ping Keep-Alive</div>
-        <div class="feat-desc">APScheduler background job pings own /health every 10 minutes. Keeps the dyno warm. SSRF allowlist is enforced at the URL level.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🔄</div>
-        <div class="feat-name">Automatic Failover</div>
-        <div class="feat-desc">If the primary server is down or slow, the fallback takes over silently. No user-visible error, no manual intervention needed.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🚀</div>
-        <div class="feat-name">Push-to-Deploy CI/CD</div>
-        <div class="feat-desc">GitHub webhooks trigger builds on both platforms simultaneously on every push to main. Zero manual deployment steps.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🔑</div>
-        <div class="feat-name">Secrets Management</div>
-        <div class="feat-desc">All API keys and secrets live in platform dashboard env vars. Git history is clean. Rotating a key takes 30 seconds per platform.</div>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🛡️</div>
-        <div class="feat-name">SSRF Hardening</div>
-        <div class="feat-desc">Proxy endpoints validate destination hostnames against an allowlist. Internal IPs (10.x, 172.x, 192.168.x, 127.x) are blocked unconditionally.</div>
-      </div>
-    </div>
+    <div class="sectit">Anime · Architectural Archetypes <span class="cbadge" id="anCnt">84 titles</span></div>
+    <div class="section-rule"></div>
+    <div class="grid" id="anGrid"><div class="nores" id="anEmpty">No results found</div></div>
   </div>
 
-  <!-- Tech Stack -->
-  <div class="sec">
-    <div class="sec-label">Tech Stack</div>
-    <h2 class="sec-h">Built With</h2>
-    <div class="stack-row">
-      <span class="stack-pill">Railway</span>
-      <span class="stack-pill cyan">Render</span>
-      <span class="stack-pill">GitHub Webhooks</span>
-      <span class="stack-pill cyan">APScheduler</span>
-      <span class="stack-pill">Gunicorn</span>
-      <span class="stack-pill purple">Flask</span>
-      <span class="stack-pill">AbortController API</span>
-      <span class="stack-pill cyan">Promise.race()</span>
-      <span class="stack-pill green">Environment Variables</span>
-      <span class="stack-pill">SSRF Allowlist</span>
-      <span class="stack-pill purple">Python 3.11</span>
-    </div>
-  </div>
-
+  <footer>
+    <p>BUILT INDEPENDENTLY · SYSTEMS ENGINEERING MINDSET</p>
+    <p>If the MC would give up here, I'd pick a better MC.</p>
+  </footer>
 </div>
 
-<footer>
-  <span class="footer-text">© 2026 Shivam Sharma</span>
-  <div class="footer-links">
-    <a href="../index.html">Home</a>
-    <a href="https://videodownloader-iicl.onrender.com" target="_blank" rel="noopener">Live System</a>
-    <a href="https://github.com/sharmashivam9109-debug/videodownloader" target="_blank" rel="noopener">GitHub</a>
+<div id="modal" class="mov">
+  <div class="mbox">
+    <div class="mdrag"></div>
+    <div class="mbody">
+      <div class="minn">
+        <div class="mposter"><img id="mImg" src="" alt=""></div>
+        <div class="mcont">
+          <button id="mCls" class="mcls">✕</button>
+          <div class="mtyp" id="mTyp"></div>
+          <div class="mtit" id="mTit"></div>
+          <div class="mrating">
+            <div class="mscore-big"><span class="mscore-num" id="mScore"></span><span class="mscore-out">/10</span></div>
+            <div class="mstars" id="mStars"></div>
+          </div>
+          <div class="mscore-bar-wrap"><div class="mscore-bar-fill" id="mScoreBar" style="width:0%"></div></div>
+          <div class="mmeta-row" id="mMeta"></div>
+        </div>
+      </div>
+      <div class="mdiv"></div>
+      <div class="msyn-label">Synopsis</div>
+      <div class="mdesc" id="mDes"></div>
+      <div class="mdiv"></div>
+      <div class="mins"><strong>⬡ Framework Insight</strong><span id="mIns"></span></div>
+      <a id="mMalBtn" class="mmal-btn" href="#" target="_blank" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/></svg>
+        View on MyAnimeList
+      </a>
+    </div>
   </div>
-</footer>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded',function(){
-  var pt=document.getElementById('pt');
-  setTimeout(function(){pt.style.opacity='0';},50);
-  document.querySelectorAll('a[href^="../"]').forEach(function(a){
-    a.addEventListener('click',function(e){
-      e.preventDefault();var href=a.href;
-      pt.style.opacity='1';
-      setTimeout(function(){window.location.href=href;},380);
+// ── IMAGE PROXY ──────────────────────────────────────────────
+function px(url, w, h) {
+  if (!url) return '';
+  return url;
+}
+
+function stars(score) {
+  const s = parseFloat(score)||0, full=Math.floor(s/2), half=(s/2-full)>=.4?1:0, empty=5-full-half;
+  return '★'.repeat(full)+(half?'½':'')+('☆'.repeat(empty));
+}
+
+function attachImg(img, src, title) {
+  if (!src) return;
+  img.onload  = () => { img.classList.add('ok'); const w=img.closest('.cimg,.scov,.mposter'); if(w){w.classList.add('done');} };
+  img.onerror = () => {
+    img.style.display='none';
+    const w=img.closest('.cimg,.scov,.mposter');
+    if(w){ w.classList.add('done'); if(!w.querySelector('.imgfb')){const fb=document.createElement('div');fb.className='imgfb';fb.textContent=title||'';w.appendChild(fb);} }
+  };
+  img.referrerPolicy = 'no-referrer';
+  img.dataset.orig = src;
+  img.src = src;
+}
+
+// ── ANILIST IMAGE HYDRATION (batch, rate-limit safe) ─────────
+async function hydrateAniListImages() {
+  const allItems = [...MANHWA, ...ANIME];
+  const BATCH = 10;
+  const DELAY_MS = 1200;
+
+  // Title overrides for better AniList matching
+  const titleFix = {
+    // Anime fixes
+    'jt':    'Juuni Taisen',
+    'sh':    'The Rising of the Shield Hero',
+    'sr':    'Summertime Rendering',
+    'kgs':   'Kaguya-sama Love Is War',
+    // Manhwa / Novel title fixes
+    'lom':   'Lord of the Mysteries',
+    'ged':   'The Great Estate Developer',
+    'pmu':   'Pick Me Up',
+    'sss':   'SSS-Class Suicide Hunter',
+    'latna': 'Latna Saga',
+    'ops':   'Overpowered Sword',
+    'tbate': 'The Beginning After the End',
+    'lutg':  'Leveling Up with Gods',
+    'nb':    'The Northern Blade',
+    'orv':   "Omniscient Reader's Viewpoint",
+    'sl':    'Solo Leveling',
+  };
+
+  async function fetchBatch(items) {
+    const fields = items.map((item, idx) => {
+      const isManga = item.malType === 'manga' || item.fmt === 'Novel' || item.fmt === 'Manhwa';
+      const type = isManga ? 'MANGA' : 'ANIME';
+      // Use direct AniList ID when available for guaranteed match
+      if (item.anilistId) {
+        return `i${idx}: Media(id: ${item.anilistId}) { coverImage { large } }`;
+      }
+      const raw = titleFix[item.id] || item.title;
+      const safe = raw.replace(/["\\]/g, '');
+      return `i${idx}: Media(search: "${safe}", type: ${type}) { coverImage { large } }`;
+    }).join(' ');
+
+    try {
+      const r = await fetch('https://graphql.anilist.co', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ query: `{ ${fields} }` })
+      });
+      if (!r.ok) { console.warn('AniList HTTP', r.status); return {}; }
+      const json = await r.json();
+      const result = {};
+      if (json.data) {
+        Object.entries(json.data).forEach(([key, val]) => {
+          const idx = parseInt(key.slice(1));
+          if (val && val.coverImage && val.coverImage.large && items[idx]) {
+            result[items[idx].id] = val.coverImage.large;
+          }
+        });
+      }
+      return result;
+    } catch (e) { console.warn('AniList batch error', e); return {}; }
+  }
+
+  function applyImg(itemId, imgUrl, itemTitle) {
+    document.querySelectorAll('.card, .sc').forEach(card => {
+      if (card.dataset.id === itemId) {
+        card.dataset.img = imgUrl;
+        const img = card.querySelector('img');
+        if (img) {
+          img.classList.remove('ok');
+          const w = img.closest('.cimg,.scov,.mposter');
+          if (w) { w.classList.remove('done'); const fb = w.querySelector('.imgfb'); if (fb) fb.remove(); }
+          img.style.display = '';
+          attachImg(img, imgUrl, itemTitle);
+        }
+      }
+    });
+  }
+
+  for (let i = 0; i < allItems.length; i += BATCH) {
+    const batch = allItems.slice(i, i + BATCH);
+    const results = await fetchBatch(batch);
+    const failed = batch.filter(item => !results[item.id]);
+    batch.forEach(item => { if (results[item.id]) applyImg(item.id, results[item.id], item.title); });
+    // Retry failed manhwa/novel via Kitsu as fallback
+    if (failed.length > 0) {
+      await Promise.all(failed.map(async item => {
+        if (item.fmt !== 'Manhwa' && item.fmt !== 'Novel') return;
+        try {
+          const q = encodeURIComponent((titleFix[item.id] || item.title).toLowerCase());
+          const r = await fetch(`https://kitsu.io/api/edge/manga?filter[text]=${q}&page[limit]=1`,{headers:{'Accept':'application/vnd.api+json'}});
+          if (!r.ok) return;
+          const json = await r.json();
+          const cover = json?.data?.[0]?.attributes?.posterImage?.large || json?.data?.[0]?.attributes?.posterImage?.medium;
+          if (cover) applyImg(item.id, cover, item.title);
+        } catch(e) { /* silent fail */ }
+      }));
+    }
+    if (i + BATCH < allItems.length) await new Promise(res => setTimeout(res, DELAY_MS));
+  }
+}
+// ── DATA — ALL STATUS: 'done' ────────────────────────────────
+const MANHWA=[
+  {id:'lom',title:'Lord of the Mysteries',fmt:'Novel',tag:'META COGNITION',line:'reality is nested abstractions',status:'done',score:'9.1',year:'2018',episodes:'1450+ chapters',malId:120478,malType:'manga',anilistId:104816,feat:true,
+   insight:'Build second-order models of the system you operate inside. Klein Moretti survives by reasoning about the game\'s rules — not just playing by them. True mastery is knowing the meta before acting in the base.',
+   img:'https://cdn.myanimelist.net/images/manga/3/266069.jpg'},
+  {id:'sl',title:'Solo Leveling',fmt:'Manhwa',tag:'COMPOUNDING',line:'grind compounds harder than genius',status:'done',score:'8.8',year:'2018',episodes:'179 chapters',malId:121496,malType:'manga',anilistId:112641,
+   insight:'Daily system discipline: 1% better every day compounds faster than any shortcut. Sung Jin-Woo\'s grind is the real algorithm — not his S-rank power.',
+   img:'https://cdn.myanimelist.net/images/manga/3/222295.jpg'},
+  {id:'orv',title:'Omniscient Reader',fmt:'Manhwa',tag:'INFO LEVERAGE',line:'reading the world as source code',status:'done',score:'9.0',year:'2020',episodes:'551 chapters',malId:0,malType:'manga',anilistId:116189,
+   insight:'Information asymmetry is the ultimate multiplier. Kim Dokja weaponizes meta-knowledge — master what others can\'t even perceive.',
+   img:'https://cdn.myanimelist.net/images/manga/2/225498.jpg'},
+  {id:'ged',title:'The Great Estate Developer',fmt:'Manhwa',tag:'RESOURCE ENG',line:'engineering over magic',status:'done',score:'7.9',year:'2020',episodes:'Ongoing',malId:0,malType:'manga',
+   insight:'Decompose ambiguous problems into concrete deliverables. Solve with resource economics — not heroics. Every castle is a systems design problem.',
+   img:'https://cdn.myanimelist.net/images/manga/1/269553.jpg'},
+  {id:'pmu',title:'Pick Me Up!',fmt:'Manhwa',tag:'CONSTRAINT OPT',line:'optimize what you have',status:'done',score:'8.2',year:'2021',episodes:'130+ chapters',malId:0,malType:'manga',
+   insight:'Optimize the team and tools you already have — not the dream ones. Gacha constraints are just real-world resource limits with extra steps.',
+   img:'https://cdn.myanimelist.net/images/manga/2/289484.jpg'},
+  {id:'sss',title:'SSS-Class Suicide Hunter',fmt:'Manhwa',tag:'SIMULATION',line:'death is just a test env',status:'done',score:'8.5',year:'2020',episodes:'130+ chapters',malId:0,malType:'manga',anilistId:134538,
+   insight:'Run staging scenarios, fail fast, extract signal, commit to prod. Every loop is a mandatory dry-run before the real deployment.',
+   img:'https://cdn.myanimelist.net/images/manga/2/258745.jpg'},
+  {id:'latna',title:'Latna Saga',fmt:'Manhwa',tag:'ENDURANCE',line:'outlast before you outperform',status:'done',score:'7.7',year:'2019',episodes:'100+ chapters',malId:0,malType:'manga',
+   insight:'Survive long enough to pay back technical debt with compound interest. Patience is its own multiplier when compounded correctly.',
+   img:'https://cdn.myanimelist.net/images/manga/2/260748.jpg'},
+  {id:'ops',title:'Overpowered Sword',fmt:'Manhwa',tag:'DEEP SYSTEMS',line:'internals define output',status:'done',score:'7.6',year:'2020',episodes:'100+ chapters',malId:0,malType:'manga',
+   insight:'Deep internals knowledge prevents production surprises. Understand the tool\'s soul, not just its public API.',
+   img:'https://cdn.myanimelist.net/images/manga/1/293455.jpg'},
+  {id:'tbate',title:'The Beginning After the End',fmt:'Manhwa',tag:'EMPATHY+TECH',line:'past knowledge, new system',status:'done',score:'7.9',year:'2018',episodes:'230+ chapters',malId:0,malType:'manga',anilistId:104504,
+   insight:'Empathy plus technical depth equals systems people actually use. Arthur\'s past-life wisdom is cross-stack knowledge transfer done right.',
+   img:'https://cdn.myanimelist.net/images/manga/1/199541.jpg'},
+  {id:'lutg',title:'Leveling Up with Gods',fmt:'Manhwa',tag:'PATTERN REC',line:'patterns across infinite loops',status:'done',score:'8.1',year:'2020',episodes:'100+ chapters',malId:0,malType:'manga',anilistId:139274,
+   insight:'Pattern recognition across repeated iterations builds the deepest system memory. Each regressed playthrough is a production runbook getting sharper.',
+   img:'https://cdn.myanimelist.net/images/manga/1/298337.jpg'},
+  {id:'nb',title:'The Northern Blade',fmt:'Manhwa',tag:'QUIET MASTERY',line:'quiet reps, loud results',status:'done',score:'8.5',year:'2019',episodes:'197 chapters',malId:0,malType:'manga',anilistId:115145,
+   insight:'Silent iteration plus accumulated depth beats flashy bursts every single time. Jin Kwan-Ho\'s mastery was invisible — until it wasn\'t.',
+   img:'https://cdn.myanimelist.net/images/manga/3/226385.jpg'}
+];
+
+const ANIME=[
+  {id:'fri',title:'Frieren',fmt:'Anime',tag:'IMPACT REVIEW',line:'what you build vs what you notice',status:'done',score:'9.09',year:'2023',episodes:'28 eps',malId:52991,feat:true,insight:'Schedule impact reviews 90 days post-launch. Real engineering is presence in the aftermath, not the launch party.',img:'https://cdn.myanimelist.net/images/anime/1015/138006.jpg'},
+  {id:'dst',title:'Dr. Stone',fmt:'Anime',tag:'FIRST PRINCIPLES',line:'first principles, no shortcuts',status:'done',score:'8.26',year:'2019',episodes:'24 eps',malId:38691,insight:'First-principles rebuild. Never port legacy bugs — understand original intent, then rebuild it right from scratch.',img:'https://cdn.myanimelist.net/images/anime/1613/102576.jpg'},
+  {id:'sg',title:'Steins;Gate',fmt:'Anime',tag:'DEPENDENCY MAP',line:'one change cascades everything',status:'done',score:'9.07',year:'2011',episodes:'24 eps',malId:9253,insight:'One-line change cascades through everything. Always include a full dependency checklist before you ship anything to prod.',img:'https://cdn.myanimelist.net/images/anime/5/73199.jpg'},
+  {id:'dn',title:'Death Note',fmt:'Anime',tag:'THREAT MODEL',line:'always assume an adversary',status:'done',score:'8.62',year:'2006',episodes:'37 eps',malId:1535,insight:'Threat-model every feature: assume a hyper-rational adversary is watching your every move. Light\'s fatal flaw was overconfidence.',img:'https://cdn.myanimelist.net/images/anime/9/9453.jpg'},
+  {id:'bl',title:'Blue Lock',fmt:'Anime',tag:'EGO OWNERSHIP',line:'own your role completely',status:'done',score:'8.13',year:'2022',episodes:'24 eps',malId:49596,insight:'Ego ownership eliminates diffusion of responsibility. Own your component like Isagi owns his play — no blame, only accountability.',img:'https://cdn.myanimelist.net/images/anime/1476/131317.jpg'},
+  {id:'mt',title:'Mushoku Tensei',fmt:'Anime',tag:'TRANSFER LEARNING',line:'skills transfer across stacks',status:'done',score:'8.48',year:'2021',episodes:'23 eps',malId:39535,insight:'Fundamentals transfer across any stack. Rudeus\' real-world failure combined with isekai retry is knowledge portability in action.',img:'https://cdn.myanimelist.net/images/anime/1530/117776.jpg'},
+  {id:'sw',title:'The Silent Witch',fmt:'Anime',tag:'ACTION > WORDS',line:'code speaks louder than talks',status:'done',score:'7.55',year:'2024',episodes:'12 eps',malId:57882,insight:'Action over declaration. Monica communicates entirely through results — a system that proves itself through outputs, not promises.',img:'https://cdn.myanimelist.net/images/anime/1013/142104.jpg'},
+  {id:'tgc',title:'The Great Cleric',fmt:'Anime',tag:'BORING MASTERY',line:'boring fundamentals win',status:'done',score:'7.05',year:'2023',episodes:'12 eps',malId:51705,insight:'Master the boring fundamentals: logging, metrics, monitoring. Luciel\'s potion grinding is your observability stack in disguise.',img:'https://cdn.myanimelist.net/images/anime/1717/138814.jpg'},
+  {id:'rez',title:'Re:Zero',fmt:'Anime',tag:'POSTMORTEM',line:'failure is just more data',status:'done',score:'8.26',year:'2016',episodes:'25 eps',malId:31240,insight:'Blameless post-mortems transform failure into signal. Subaru\'s death loops are mandatory incident reviews — painful but necessary.',img:'https://cdn.myanimelist.net/images/anime/1522/128039.jpg'},
+  {id:'aot',title:'Attack on Titan',fmt:'Anime',tag:'BLAST RADIUS',line:'trade-offs no one talks about',status:'done',score:'9.06',year:'2013',episodes:'87 eps',malId:16498,insight:'Every decision hides massive trade-offs. Map the blast radius before you deploy — or you become the rumbling.',img:'https://cdn.myanimelist.net/images/anime/1000/110531.jpg'},
+  {id:'jjk',title:'Jujutsu Kaisen',fmt:'Anime',tag:'ROLLBACK PLAN',line:'no guarantee, still show up',status:'done',score:'8.59',year:'2020',episodes:'24 eps',malId:40748,insight:'Define your rollback threshold before you commit fully. Gojo\'s sealing had no rollback plan — always design yours first.',img:'https://cdn.myanimelist.net/images/anime/1171/109222.jpg'},
+  {id:'pp',title:'Psycho-Pass',fmt:'Anime',tag:'ALGO AUDIT',line:'audit your algorithms',status:'done',score:'8.36',year:'2012',episodes:'22 eps',malId:13601,insight:'Algorithms carry bias. Audit your training data and feedback loops before the Sybil system runs your entire city unchecked.',img:'https://cdn.myanimelist.net/images/anime/13/50561.jpg'},
+  {id:'csm',title:'Chainsaw Man',fmt:'Anime',tag:'MOTIVATION CLARITY',line:'honest motives over hero speech',status:'done',score:'8.55',year:'2022',episodes:'12 eps',malId:44511,insight:'Brutal honesty about core motivation eliminates wasted cycles. Denji\'s clarity is ruthless prioritization stripped of ego.',img:'https://cdn.myanimelist.net/images/anime/1806/126216.jpg'},
+  {id:'kns',title:'Konosuba',fmt:'Anime',tag:'CONSTRAINT SHIP',line:'ship with garbage specs',status:'done',score:'8.12',year:'2016',episodes:'10 eps',malId:30831,insight:'Ship with constraints and iterate fast. Velocity with a bad team beats perfection paralysis with an imaginary perfect one.',img:'https://cdn.myanimelist.net/images/anime/1888/113601.jpg'},
+  {id:'ds',title:'Demon Slayer',fmt:'Anime',tag:'USER EMPATHY',line:'understand then execute',status:'done',score:'8.45',year:'2019',episodes:'26 eps',malId:38000,insight:'Empathy before execution. Tanjiro\'s deepest skill isn\'t swordsmanship — it\'s understanding what the enemy actually needs.',img:'https://cdn.myanimelist.net/images/anime/1286/99889.jpg'},
+  {id:'cg',title:'Code Geass',fmt:'Anime',tag:'STRATEGIC LAYERS',line:'always have a backup plan',status:'done',score:'8.69',year:'2006',episodes:'25 eps',malId:1575,insight:'Build layered fallback plans with strategic sacrifice baked in. Lelouch\'s final gambit is multi-phase contingency engineering.',img:'https://cdn.myanimelist.net/images/anime/5/50331.jpg'},
+  {id:'fma',title:'FMA: Brotherhood',fmt:'Anime',tag:'EQUIV EXCHANGE',line:'nothing in engineering is free',status:'done',score:'9.10',year:'2009',episodes:'64 eps',malId:5114,insight:'Equivalent exchange: nothing is free. Cost vs output tradeoffs must be explicitly named — or the system names them for you.',img:'https://cdn.myanimelist.net/images/anime/1223/96541.jpg'},
+  {id:'vs',title:'Vinland Saga',fmt:'Anime',tag:'ROOT CONFLICT',line:'solve root cause not symptoms',status:'done',score:'8.73',year:'2019',episodes:'24 eps',malId:37521,insight:'True strength is solving root conflict without breaking prod. Thorfinn\'s peace is root-cause resolution at its finest.',img:'https://cdn.myanimelist.net/images/anime/1500/103005.jpg'},
+  {id:'spyf',title:'Spy x Family',fmt:'Anime',tag:'POLYGLOT ARCH',line:'different components, one mission',status:'done',score:'8.00',year:'2022',episodes:'25 eps',malId:50265,insight:'Polyglot architecture: different components with completely different interfaces, one shared mission. The Forgers are a microservices pattern.',img:'https://cdn.myanimelist.net/images/anime/1441/122795.jpg'},
+  {id:'mob',title:'Mob Psycho 100',fmt:'Anime',tag:'SUPPRESS EGO',line:'ego off, full capacity on',status:'done',score:'8.87',year:'2016',episodes:'12 eps',malId:32182,insight:'Suppress ego, let fundamentals operate at full capacity. Mob at 100% is a system running with zero throttling and perfect allocation.',img:'https://cdn.myanimelist.net/images/anime/1918/138585.jpg'},
+  {id:'hq',title:'Haikyuu!!',fmt:'Anime',tag:'TEAM HANDOFFS',line:'handoffs beat solo plays',status:'done',score:'8.62',year:'2014',episodes:'25 eps',malId:20583,insight:'Team cohesion and reliable handoffs beat individual brilliance every single time. Karasuno\'s synergy is the system, not any one player.',img:'https://cdn.myanimelist.net/images/anime/7/76014.jpg'},
+  {id:'ei',title:'86 Eighty-Six',fmt:'Anime',tag:'EDGE CASES',line:'edge cases have names',status:'done',score:'8.11',year:'2021',episodes:'11 eps',malId:41457,insight:'Handle edge cases with compassion — not just automation. The 86 are the users your system decided were acceptable losses.',img:'https://cdn.myanimelist.net/images/anime/1963/128728.jpg'},
+  {id:'vivy',title:'Vivy',fmt:'Anime',tag:'LONG TERM OPS',line:'design for future maintainers',status:'done',score:'8.03',year:'2021',episodes:'13 eps',malId:45942,insight:'Mission reliability across 100-year timescales. Design for the maintainers who come after you — they are the real user.',img:'https://cdn.myanimelist.net/images/anime/1025/120254.jpg'},
+  {id:'ot',title:'Odd Taxi',fmt:'Anime',tag:'EVENT SOURCING',line:'truth is in the uncorrelated logs',status:'done',score:'8.59',year:'2021',episodes:'13 eps',malId:46102,insight:'Nonlinear narratives equal complex event sourcing. The truth is in the logs you haven\'t correlated yet — Odokawa knew this.',img:'https://cdn.myanimelist.net/images/anime/1740/112607.jpg'},
+  {id:'rok',title:'Ranking of Kings',fmt:'Anime',tag:'WEAK SIGNALS',line:'weakness is a competitive moat',status:'done',score:'8.72',year:'2021',episodes:'23 eps',malId:48736,insight:'Perceived weakness can be a strategic advantage. Bojji\'s constraint is his competitive moat — misread by every adversary.',img:'https://cdn.myanimelist.net/images/anime/1347/117619.jpg'},
+  {id:'tye',title:'To Your Eternity',fmt:'Anime',tag:'LEGACY SYSTEMS',line:'plan for who comes after',status:'done',score:'8.28',year:'2021',episodes:'20 eps',malId:41025,insight:'Systems evolve over centuries. Plan documentation and architecture for the maintainers who inherit your work decades later.',img:'https://cdn.myanimelist.net/images/anime/1045/106389.jpg'},
+  {id:'hxh',title:'Hunter x Hunter',fmt:'Anime',tag:'SCALABLE API',line:'power systems with extension points',status:'done',score:'9.04',year:'2011',episodes:'148 eps',malId:11061,insight:'The best systems have hidden depth layers. Nen is an API with infinite extension points — discover the meta before you scale.',img:'https://cdn.myanimelist.net/images/anime/11/33657.jpg'},
+  {id:'nrt',title:'Naruto',fmt:'Anime',tag:'SHADOW CLONE',line:'parallel exec beats sequential',status:'done',score:'8.00',year:'2002',episodes:'220 eps',malId:20,insight:'Parallel execution: shadow clone jutsu is distributed processing. Naruto\'s growth is horizontal scaling done right.',img:'https://cdn.myanimelist.net/images/anime/13/17405.jpg'},
+  {id:'op',title:'One Piece',fmt:'Anime',tag:'LONG GAME',line:'build for 20 years',status:'done',score:'8.72',year:'1999',episodes:'1100+ eps',malId:21,insight:'Build for the long game. One Piece is the best long-term product roadmap ever written — trust the vision.',img:'https://cdn.myanimelist.net/images/anime/6/73245.jpg'},
+  {id:'blc',title:'Bleach: TYBW',fmt:'Anime',tag:'HIDDEN RESERVES',line:'release the bankai you\'ve been holding',status:'done',score:'8.95',year:'2022',episodes:'26 eps',malId:41467,insight:'Systems have hidden reserves. The Quincy invasion is a zero-day — what\'s your Bankai you haven\'t deployed yet?',img:'https://cdn.myanimelist.net/images/anime/1764/138714.jpg'},
+  {id:'gin',title:'Gintama',fmt:'Anime',tag:'CHAOS SYSTEMS',line:'ship in chaos, still deliver',status:'done',score:'8.95',year:'2006',episodes:'201 eps',malId:918,insight:'High entropy input doesn\'t mean bad output. Gintama ships in absolute chaos and still consistently delivers.',img:'https://cdn.myanimelist.net/images/anime/3/72078.jpg'},
+  {id:'ff',title:'Fire Force',fmt:'Anime',tag:'INCIDENT CMD',line:'clear escalation chain wins',status:'done',score:'7.88',year:'2019',episodes:'24 eps',malId:38671,insight:'Incident command structure under fire. Every crisis needs a clear escalation chain — not a lone hero rushing in.',img:'https://cdn.myanimelist.net/images/anime/1830/102312.jpg'},
+  {id:'mha',title:'My Hero Academia',fmt:'Anime',tag:'QUIRK MAPPING',line:'map asymmetric strengths first',status:'done',score:'8.00',year:'2016',episodes:'113 eps',malId:31964,insight:'Map everyone\'s unique capability before designing the system. Leverage asymmetric strengths — that\'s the Quirk Analysis.',img:'https://cdn.myanimelist.net/images/anime/10/78745.jpg'},
+  {id:'tr',title:'Tokyo Revengers',fmt:'Anime',tag:'CAUSAL CHAINS',line:'patches without root-cause fail',status:'done',score:'7.70',year:'2021',episodes:'24 eps',malId:44082,insight:'Understand causal chains before intervening. Takemichi learns the hard way: patches without root-cause analysis never hold.',img:'https://cdn.myanimelist.net/images/anime/1839/122012.jpg'},
+  {id:'par',title:'Parasyte',fmt:'Anime',tag:'HOST SYSTEMS',line:'environment shapes architecture',status:'done',score:'8.34',year:'2014',episodes:'24 eps',malId:22535,insight:'Your environment shapes your architecture. Shinichi\'s duality is a lesson in host-parasite interface design at the cellular level.',img:'https://cdn.myanimelist.net/images/anime/3/73174.jpg'},
+  {id:'ers',title:'Erased',fmt:'Anime',tag:'REGRESSION DEBUG',line:'git bisect on life',status:'done',score:'8.43',year:'2016',episodes:'12 eps',malId:31043,insight:'Go back to the earliest known-good state when debugging. Satoru\'s revival is a git bisect on life — find the first bad commit.',img:'https://cdn.myanimelist.net/images/anime/2/80181.jpg'},
+  {id:'mon',title:'Monster',fmt:'Anime',tag:'UNINTENDED EFFECTS',line:'monitor outputs post-deploy',status:'done',score:'9.07',year:'2004',episodes:'74 eps',malId:19,insight:'Monitor your system\'s outputs long after deployment. Johan is what happens when you ship something powerful without long-term observation.',img:'https://cdn.myanimelist.net/images/anime/10/18782.jpg'},
+  {id:'plu',title:'Pluto',fmt:'Anime',tag:'PACIFIST PROTO',line:'design conflict resolution in',status:'done',score:'9.00',year:'2023',episodes:'8 eps',malId:55791,insight:'Design conflict resolution into your system\'s core. The strongest machines were the ones that built in refusal protocols.',img:'https://cdn.myanimelist.net/images/anime/1888/138022.jpg'},
+  {id:'mia',title:'Made in Abyss',fmt:'Anime',tag:'TECH DEBT COST',line:'debt has irreversible cost',status:'done',score:'8.67',year:'2017',episodes:'13 eps',malId:34599,insight:'Technical debt has physical, irreversible costs. The Curse of the Abyss is what happens when you keep ignoring accumulation.',img:'https://cdn.myanimelist.net/images/anime/6/86733.jpg'},
+  {id:'mmg',title:'Madoka Magica',fmt:'Anime',tag:'ENTROPY LAW',line:'you can\'t fight entropy forever',status:'done',score:'8.34',year:'2011',episodes:'12 eps',malId:9756,insight:'Fighting entropy is unsustainable. Homura\'s loops are unmaintainable spaghetti — Madoka\'s solution is architectural redesign.',img:'https://cdn.myanimelist.net/images/anime/11/47640.jpg'},
+  {id:'cpe',title:'Cyberpunk: Edgerunners',fmt:'Anime',tag:'STACK OVERFLOW',line:'know your hard limits',status:'done',score:'8.36',year:'2022',episodes:'10 eps',malId:42310,insight:'Systems have hard limits. David\'s cyberpsychosis is what happens when you keep installing dependencies without profiling the load.',img:'https://cdn.myanimelist.net/images/anime/1818/126435.jpg'},
+  {id:'drh',title:'Dorohedoro',fmt:'Anime',tag:'CHAOS TOLERANCE',line:'build for chaos tolerance',status:'done',score:'8.19',year:'2020',episodes:'12 eps',malId:40514,insight:'High-chaos systems can still be functional. Design services resilient enough to operate in Dorohedoro\'s absolute entropy.',img:'https://cdn.myanimelist.net/images/anime/1425/99470.jpg'},
+  {id:'gk',title:'Golden Kamuy',fmt:'Anime',tag:'FIELD INTEL',line:'validate assumptions in the wild',status:'done',score:'8.28',year:'2018',episodes:'12 eps',malId:36028,insight:'Field intelligence beats armchair analysis every time. Sugimoto survives because he validates assumptions against reality.',img:'https://cdn.myanimelist.net/images/anime/1811/88273.jpg'},
+  {id:'mb',title:'Megalo Box',fmt:'Anime',tag:'UNDERDOG STACK',line:'lean beats enterprise when focused',status:'done',score:'7.91',year:'2018',episodes:'13 eps',malId:36583,insight:'A lean, focused stack can beat enterprise if it\'s faster. Joe\'s gearless approach is the definition of doing more with less.',img:'https://cdn.myanimelist.net/images/anime/8/90517.jpg'},
+  {id:'gp',title:'Great Pretender',fmt:'Anime',tag:'CON AS DESIGN',line:'social engineering is UX',status:'done',score:'8.07',year:'2020',episodes:'23 eps',malId:41433,insight:'Social engineering is a design problem. The crew\'s cons are well-designed user journeys that exploit unverified assumptions.',img:'https://cdn.myanimelist.net/images/anime/1493/106282.jpg'},
+  {id:'kgs',title:'Kaguya-sama',fmt:'Anime',tag:'GAME THEORY',line:'every interaction is equilibrium',status:'done',score:'8.40',year:'2019',episodes:'12 eps',malId:37999,insight:'Game theory applied to social systems. Every interaction is a Nash equilibrium problem — Kaguya and Miyuki are solving it.',img:'https://cdn.myanimelist.net/images/anime/1315/108009.jpg'},
+  {id:'hor',title:'Horimiya',fmt:'Anime',tag:'INTERFACE MISMATCH',line:'public vs private implementation',status:'done',score:'8.00',year:'2021',episodes:'13 eps',malId:42897,insight:'Public interface vs private implementation. The gap between how users see your system and what it actually is — always manage it.',img:'https://cdn.myanimelist.net/images/anime/1791/121999.jpg'},
+  {id:'boc',title:'Bocchi the Rock!',fmt:'Anime',tag:'ASYNC PROCESS',line:'offline work + merge = best flow',status:'done',score:'8.93',year:'2022',episodes:'12 eps',malId:47917,insight:'Async processing: Bocchi records alone and syncs with the band later. Offline work plus merge is still the best workflow.',img:'https://cdn.myanimelist.net/images/anime/1448/127956.jpg'},
+  {id:'lyr',title:'Lycoris Recoil',fmt:'Anime',tag:'GRACEFUL DEGRADE',line:'operate under fatal constraints',status:'done',score:'8.01',year:'2022',episodes:'13 eps',malId:50709,insight:'Graceful degradation under fatal constraints. Chisato\'s design is a masterclass in limited-lifetime system operations.',img:'https://cdn.myanimelist.net/images/anime/1887/117644.jpg'},
+  {id:'sr',title:'Summertime Render',fmt:'Anime',tag:'STATE SNAPSHOTS',line:'savepoints at critical checks',status:'done',score:'8.58',year:'2022',episodes:'25 eps',malId:47195,insight:'Maintain state snapshots at critical checkpoints. Shinpei\'s loops are manual savepoints in an otherwise write-only system.',img:'https://cdn.myanimelist.net/images/anime/1245/122467.jpg'},
+  {id:'dtb',title:'Darker than Black',fmt:'Anime',tag:'ZERO TRUST',line:'trust nobody by default',status:'done',score:'8.13',year:'2007',episodes:'25 eps',malId:2025,insight:'Zero-trust architecture. Hei trusts nobody by default — every contractor is an untrusted node until proven otherwise.',img:'https://cdn.myanimelist.net/images/anime/7/20016.jpg'},
+  {id:'dur',title:'Durarara!!',fmt:'Anime',tag:'NETWORK GRAPHS',line:'side effects travel far',status:'done',score:'8.19',year:'2010',episodes:'24 eps',malId:6746,insight:'Every character is a node in a social graph. Build network-aware systems — side effects travel much further than you expect.',img:'https://cdn.myanimelist.net/images/anime/7/43289.jpg'},
+  {id:'bcc',title:'Baccano!',fmt:'Anime',tag:'MULTI-THREAD',line:'race conditions need handling',status:'done',score:'8.18',year:'2007',episodes:'13 eps',malId:2251,insight:'Parallel timelines equal multi-threaded execution. Baccano\'s chaos is a race condition — great systems handle it deliberately.',img:'https://cdn.myanimelist.net/images/anime/11/4104.jpg'},
+  {id:'kkb',title:'Kekkai Sensen',fmt:'Anime',tag:'RATE LIMITING',line:'throughput controls prevent chaos',status:'done',score:'7.89',year:'2015',episodes:'12 eps',malId:28791,insight:'Rate limiting is what keeps chaos from consuming everything. Hellsalem\'s Lot runs only because of strict throughput controls.',img:'https://cdn.myanimelist.net/images/anime/6/67213.jpg'},
+  {id:'mgi',title:'Magi',fmt:'Anime',tag:'RESOURCE ALLOC',line:'allocate rukh where it matters',status:'done',score:'8.09',year:'2012',episodes:'25 eps',malId:14513,insight:'Resource allocation at scale. Aladdin and Alibaba build empires by allocating compute where it actually matters.',img:'https://cdn.myanimelist.net/images/anime/1373/100490.jpg'},
+  {id:'sds',title:'Seven Deadly Sins',fmt:'Anime',tag:'REDUNDANCY',line:'no single point of failure',status:'done',score:'7.86',year:'2014',episodes:'24 eps',malId:23755,insight:'Redundant systems save you when the primary fails. Meliodas as a single point of failure — never architect that way.',img:'https://cdn.myanimelist.net/images/anime/8/65409.jpg'},
+  {id:'tog',title:'Tower of God',fmt:'Anime',tag:'HIDDEN RULES',line:'understand the game before playing',status:'done',score:'7.79',year:'2020',episodes:'13 eps',malId:40628,insight:'Understand the hidden rules of the game before you play it. Bam\'s most important skill is rule discovery — not combat.',img:'https://cdn.myanimelist.net/images/anime/1413/108108.jpg'},
+  {id:'gohs',title:'God of High School',fmt:'Anime',tag:'POWER SCALING',line:'clean scaling contracts matter',status:'done',score:'7.55',year:'2020',episodes:'13 eps',malId:40417,insight:'Systems need clean power scaling contracts. The tournament is an SLA — break it and the entire framework collapses.',img:'https://cdn.myanimelist.net/images/anime/2/103505.jpg'},
+  {id:'jt',title:'Juni Taisen',fmt:'Anime',tag:'PROBABILISTIC',line:'bayesian reasoning under pressure',status:'done',score:'7.30',year:'2017',episodes:'12 eps',malId:34750,insight:'Probabilistic decision-making under uncertainty. Nezumi\'s survival is Bayesian reasoning applied in real time.',img:'https://cdn.myanimelist.net/images/anime/3/87484.jpg'},
+  {id:'akd',title:'Akudama Drive',fmt:'Anime',tag:'ROLE ISOLATION',line:'single responsibility or die',status:'done',score:'7.88',year:'2020',episodes:'12 eps',malId:40610,insight:'Role isolation prevents systemic failure. Every Akudama is a single-responsibility module — and they all die when scoped incorrectly.',img:'https://cdn.myanimelist.net/images/anime/1488/107068.jpg'},
+  {id:'dcd',title:'Deca-Dence',fmt:'Anime',tag:'ABSTRACTION LAYERS',line:'check your assumption stack',status:'done',score:'7.79',year:'2020',episodes:'12 eps',malId:41194,insight:'Reality is always layered behind abstractions. Natsume never knew she was inside a game — audit your assumption stack regularly.',img:'https://cdn.myanimelist.net/images/anime/1291/108122.jpg'},
+  {id:'tln',title:'Talentless Nana',fmt:'Anime',tag:'DEDUCTION ENGINE',line:'reasoning beats brute force',status:'done',score:'7.89',year:'2020',episodes:'13 eps',malId:40425,insight:'A good deduction engine beats brute force every time. Nana\'s combat is pure adversarial reasoning with zero superpowers.',img:'https://cdn.myanimelist.net/images/anime/1285/106937.jpg'},
+  {id:'ab',title:'Angel Beats!',fmt:'Anime',tag:'ACCEPTANCE LOOP',line:'define done or loop forever',status:'done',score:'8.11',year:'2010',episodes:'13 eps',malId:6547,insight:'Some systems run forever because they refuse to acknowledge completion. Define what done looks like — or loop indefinitely.',img:'https://cdn.myanimelist.net/images/anime/10/22061.jpg'},
+  {id:'clt',title:'Charlotte',fmt:'Anime',tag:'SCOPE CREEP',line:'every yes has a cost',status:'done',score:'7.85',year:'2015',episodes:'13 eps',malId:30167,insight:'Scope creep destroys systems. Yuu\'s power acquisition arc is what happens when you say yes to every single feature request.',img:'https://cdn.myanimelist.net/images/anime/1/68779.jpg'},
+  {id:'pm',title:'Plastic Memories',fmt:'Anime',tag:'EOL PLANNING',line:'graceful shutdown matters',status:'done',score:'8.10',year:'2015',episodes:'13 eps',malId:28701,insight:'Design end-of-life with as much care as launch. Isla\'s retirement is a masterclass in graceful, intentional shutdown.',img:'https://cdn.myanimelist.net/images/anime/13/68822.jpg'},
+  {id:'ve',title:'Violet Evergarden',fmt:'Anime',tag:'PARSING HUMANS',line:'fine-tune on compassion',status:'done',score:'8.66',year:'2018',episodes:'13 eps',malId:33352,insight:'Building interfaces that parse human emotion. Violet\'s journey is NLP fine-tuning on compassion — slow, hard, worth it.',img:'https://cdn.myanimelist.net/images/anime/1795/95088.jpg'},
+  {id:'ano',title:'Anohana',fmt:'Anime',tag:'GHOST DEPS',line:'undocumented deps haunt you',status:'done',score:'8.47',year:'2011',episodes:'11 eps',malId:9989,insight:'Ghost dependencies haunt your system. Menma is every undocumented dependency you forgot to clean up before shipping.',img:'https://cdn.myanimelist.net/images/anime/11/35570.jpg'},
+  {id:'ylia',title:'Your Lie in April',fmt:'Anime',tag:'PERF UNDER LOAD',line:'perform at maximum latency',status:'done',score:'8.67',year:'2014',episodes:'22 eps',malId:23273,insight:'Perform even under maximum emotional load. Kousei\'s return is a prod deployment under extreme personal latency.',img:'https://cdn.myanimelist.net/images/anime/3/67177.jpg'},
+  {id:'kon',title:'K-ON!!',fmt:'Anime',tag:'EMERGENCE',line:'emergent behavior from simple rules',status:'done',score:'8.18',year:'2010',episodes:'26 eps',malId:7791,insight:'Emergent behavior from simple rules. The Light Music Club\'s chemistry is emergence — no single component explains the whole.',img:'https://cdn.myanimelist.net/images/anime/4/50483.jpg'},
+  {id:'hyo',title:'Hyouka',fmt:'Anime',tag:'MINIMAL EFFORT',line:'minimum effort, maximum inference',status:'done',score:'8.13',year:'2012',episodes:'22 eps',malId:12189,insight:'Minimum effort, maximum inference. Oreki\'s energy conservation principle is optimal resource allocation — not laziness.',img:'https://cdn.myanimelist.net/images/anime/13/50521.jpg'},
+  {id:'ore',title:'Oregairu',fmt:'Anime',tag:'LONE WOLF TRAP',line:'lone-wolf solutions don\'t scale',status:'done',score:'8.12',year:'2013',episodes:'13 eps',malId:14813,insight:'Lone-wolf solutions don\'t scale. Hachiman\'s broken methods work until they break the people around him — and then himself.',img:'https://cdn.myanimelist.net/images/anime/1788/118707.jpg'},
+  {id:'bgs',title:'Bunny Girl Senpai',fmt:'Anime',tag:'OBSERVER EFFECT',line:'observing changes the system',status:'done',score:'8.41',year:'2018',episodes:'13 eps',malId:37450,insight:'The observer effect is real. Adolescence syndrome equals side effects from observing your own system too closely and too long.',img:'https://cdn.myanimelist.net/images/anime/1855/110038.jpg'},
+  {id:'bkm',title:'Bakemonogatari',fmt:'Anime',tag:'VERBAL DEBUG',line:'rubber duck debugging at scale',status:'done',score:'8.39',year:'2009',episodes:'15 eps',malId:5081,insight:'Verbal debugging resolves 80% of issues. Araragi and Hanekawa\'s conversations are rubber-duck debugging elevated to art.',img:'https://cdn.myanimelist.net/images/anime/11/75533.jpg'},
+  {id:'cote',title:'Classroom of the Elite',fmt:'Anime',tag:'HIDDEN VARS',line:'never trust surface-level data',status:'done',score:'7.94',year:'2017',episodes:'13 eps',malId:35507,insight:'Always assume hidden variables. Ayanokoji\'s game theory is the discipline of never ever trusting surface-level data alone.',img:'https://cdn.myanimelist.net/images/anime/1165/96633.jpg'},
+  {id:'tgm',title:'Tomodachi Game',fmt:'Anime',tag:'ADVERSARIAL TEST',line:'red team your social contracts',status:'done',score:'7.59',year:'2022',episodes:'12 eps',malId:49388,insight:'Adversarial testing exposes design flaws. The Tomodachi Game is a red team exercise applied to social contracts and trust.',img:'https://cdn.myanimelist.net/images/anime/1378/124524.jpg'},
+  {id:'kkg',title:'Kakegurui',fmt:'Anime',tag:'RISK APPETITE',line:'define your risk budget explicitly',status:'done',score:'7.60',year:'2017',episodes:'12 eps',malId:34933,insight:'Define your risk appetite explicitly. Yumeko\'s compulsion is an undefined risk budget — extremely dangerous in production.',img:'https://cdn.myanimelist.net/images/anime/12/86901.jpg'},
+  {id:'ngnl',title:'No Game No Life',fmt:'Anime',tag:'RULE MASTERY',line:'win the framework, not the fight',status:'done',score:'8.01',year:'2014',episodes:'12 eps',malId:19815,insight:'Mastering the ruleset is the meta-game. Sora and Shiro don\'t win fights — they win the framework the fight is played in.',img:'https://cdn.myanimelist.net/images/anime/1074/111944.jpg'},
+  {id:'ovl',title:'Overlord',fmt:'Anime',tag:'ADMIN MINDSET',line:'full access, full responsibility',status:'done',score:'7.95',year:'2015',episodes:'13 eps',malId:29803,insight:'Think like an admin, not a user. Ainz operates from the sysadmin perspective — full access means full responsibility.',img:'https://cdn.myanimelist.net/images/anime/7/88641.jpg'},
+  {id:'trs',title:'That Time I Got Reincarnated',fmt:'Anime',tag:'ABSORPTION API',line:'best plugin architecture in fiction',status:'done',score:'8.00',year:'2018',episodes:'24 eps',malId:37430,insight:'Build an absorption API. Rimuru\'s Predator skill is the best plugin architecture in all of fiction — it just works.',img:'https://cdn.myanimelist.net/images/anime/1194/93686.jpg'},
+  {id:'sh',title:'Shield Hero',fmt:'Anime',tag:'TRUST PROTOCOL',line:'trust stack built from zero',status:'done',score:'8.00',year:'2019',episodes:'25 eps',malId:35790,insight:'Trust protocol design from scratch. Naofumi builds a trust stack from absolute zero — every ally earned, never assumed.',img:'https://cdn.myanimelist.net/images/anime/10/93285.jpg'},
+  {id:'eis',title:'The Eminence in Shadow',fmt:'Anime',tag:'FICTIONAL ARCH',line:'fiction that became a real org',status:'done',score:'8.06',year:'2022',episodes:'20 eps',malId:51815,insight:'Architect fictional abstractions that become real systems. Cid\'s chuunibyou worldbuilding accidentally created a functional org.',img:'https://cdn.myanimelist.net/images/anime/1160/122627.jpg'}
+];
+
+const SHELF=[MANHWA[0],MANHWA[2],MANHWA[1],ANIME[0],ANIME[2],ANIME[16]];
+
+// ── BUILD CARDS ──────────────────────────────────────────────
+function mkCard(item){
+  const d=document.createElement('div');
+  d.className='card'+(item.feat?' feat':'');
+  ['id','title','insight','img','score','year','episodes','line','status'].forEach(k=>d.dataset[k]=item[k]||'');
+  d.dataset.fmt=item.fmt||'Anime'; d.dataset.tag=item.tag||''; d.dataset.malId=item.malId||0; d.dataset.malType=item.malType||'anime';
+  d.innerHTML=`
+    <div class="cimg">
+      <img alt="${item.title}" loading="lazy" decoding="async">
+      <div class="covl"></div>
+      ${item.score?`<div class="cscore">★ ${item.score}</div>`:''}
+      <div class="ccomplete">COMPLETED</div>
+    </div>
+    <div class="cinf">
+      <div class="ctit">${item.title}</div>
+      ${item.line?`<div class="cline">${item.line}</div>`:''}
+      <div class="cmeta">${item.tag?`<span class="ctag-chip">${item.tag}</span>`:''}
+      <span class="cstatus done">Completed</span></div>
+    </div>`;
+  attachImg(d.querySelector('img'), px(item.img,400,600), item.title);
+  return d;
+}
+
+function mkShelfCard(item){
+  const d=document.createElement('div');
+  d.className='sc'+(item.feat?' feat':'');
+  ['id','title','insight','img','score','year','episodes','line','status'].forEach(k=>d.dataset[k]=item[k]||'');
+  d.dataset.fmt=item.fmt||''; d.dataset.tag=item.tag||''; d.dataset.malId=item.malId||0; d.dataset.malType=item.malType||'anime';
+  d.innerHTML=`
+    <div class="scov">
+      <img alt="${item.title}" loading="lazy" decoding="async">
+      <div class="sovl"></div>
+      ${item.score?`<div class="sc-score">★ ${item.score}</div>`:''}
+      <div class="sc-complete">DONE</div>
+    </div>
+    <div class="sinf"><div class="stit">${item.title}</div><div class="ssub">${item.tag||'framework'}</div></div>`;
+  attachImg(d.querySelector('img'), px(item.img,240,360), item.title);
+  return d;
+}
+
+// ── INJECT ───────────────────────────────────────────────────
+const shelfEl=document.getElementById('shelfEl');
+SHELF.forEach(i=>shelfEl.appendChild(mkShelfCard(i)));
+const mwGrid=document.getElementById('mwGrid');
+MANHWA.forEach(i=>mwGrid.appendChild(mkCard(i)));
+const anGrid=document.getElementById('anGrid');
+ANIME.forEach(i=>anGrid.appendChild(mkCard(i)));
+
+// Fetch real images from AniList CDN (no hotlink restrictions)
+hydrateAniListImages();
+
+// ── SCROLL REVEAL ────────────────────────────────────────────
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){
+    const all=[...e.target.parentElement.querySelectorAll('.card:not(.vis)')];
+    setTimeout(()=>e.target.classList.add('vis'),Math.min(all.indexOf(e.target)*28,300));
+    ro.unobserve(e.target);
+  }});
+},{threshold:.05,rootMargin:'0px 0px -20px 0px'});
+document.querySelectorAll('.card').forEach(c=>ro.observe(c));
+
+// ── TILT (desktop only) ──────────────────────────────────────
+if(window.matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.card,.sc').forEach(el=>{
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      el.style.transform=`perspective(700px) rotateX(${-y*7}deg) rotateY(${x*7}deg) translateY(-3px) scale(1.018)`;
+      el.style.transition='transform .06s ease';
+    });
+    el.addEventListener('mouseleave',()=>{
+      el.style.transform='';el.style.transition='transform .4s cubic-bezier(.34,1.1,.64,1),border-color .2s,box-shadow .2s';
+      setTimeout(()=>el.style.transition='',450);
     });
   });
+}
+
+// ── COUNT-UP ─────────────────────────────────────────────────
+const co=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){
+    const t=+e.target.dataset.t,sf=e.target.dataset.s||'';let st=null;
+    (function step(ts){if(!st)st=ts;const p=Math.min((ts-st)/1600,1),ease=1-Math.pow(1-p,3);e.target.textContent=Math.floor(ease*t)+(p>=1?sf:'');if(p<1)requestAnimationFrame(step);})(performance.now());
+    co.unobserve(e.target);
+  }});
+},{threshold:.5});
+document.querySelectorAll('[data-t]').forEach(el=>co.observe(el));
+
+// ── PROGRESS ─────────────────────────────────────────────────
+const pb=document.getElementById('prog');
+window.addEventListener('scroll',()=>{pb.style.width=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight)*100)+'%';},{passive:true});
+
+// ── MODAL ────────────────────────────────────────────────────
+const modal=document.getElementById('modal');
+const mImg=document.getElementById('mImg'),mTit=document.getElementById('mTit'),mTyp=document.getElementById('mTyp');
+const mScore=document.getElementById('mScore'),mStars=document.getElementById('mStars'),mMeta=document.getElementById('mMeta');
+const mDes=document.getElementById('mDes'),mIns=document.getElementById('mIns'),mMalBtn=document.getElementById('mMalBtn');
+
+function openModal(d){
+  mImg.classList.remove('ok');
+  attachImg(mImg, px(d.img,320,480), d.title);
+  mTit.textContent=d.title;
+  mTyp.textContent=(d.fmt||'Anime')+' · '+(d.tag||'');
+  const s=parseFloat(d.score)||0;
+  mScore.textContent=s.toFixed(2);
+  mStars.textContent=stars(s);
+  mMeta.innerHTML='';
+  [d.year,d.episodes,d.fmt].filter(Boolean).forEach(m=>{const p=document.createElement('span');p.className='mmeta-pill';p.textContent=m;mMeta.appendChild(p);});
+  const sp=document.createElement('span');sp.className='mmeta-pill done-pill';sp.textContent='✓ Completed';mMeta.appendChild(sp);
+  mDes.textContent=d.insight;
+  mIns.textContent=d.insight;
+  const mid=parseInt(d.malId);
+  if(mid>0){mMalBtn.href=`https://myanimelist.net/${d.malType||'anime'}/${mid}`;mMalBtn.style.display='inline-flex';}
+  else mMalBtn.style.display='none';
+  modal.classList.add('open');document.body.style.overflow='hidden';
+}
+function closeModal(){modal.classList.remove('open');document.body.style.overflow='';}
+
+document.querySelectorAll('.card,.sc').forEach(el=>{
+  el.addEventListener('click',()=>openModal({title:el.dataset.title,fmt:el.dataset.fmt,tag:el.dataset.tag,insight:el.dataset.insight,img:el.dataset.img,score:el.dataset.score,year:el.dataset.year,episodes:el.dataset.episodes,malId:el.dataset.malId,malType:el.dataset.malType,line:el.dataset.line,status:el.dataset.status}));
+});
+document.getElementById('mCls').addEventListener('click',closeModal);
+modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// swipe down to close modal on mobile
+let tY=0;
+document.querySelector('.mbox').addEventListener('touchstart',e=>{tY=e.touches[0].clientY;},{passive:true});
+document.querySelector('.mbox').addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-tY>80)closeModal();},{passive:true});
+
+// ── SEARCH ───────────────────────────────────────────────────
+let sTimer;
+document.getElementById('si').addEventListener('input',function(){
+  clearTimeout(sTimer);
+  sTimer=setTimeout(()=>{
+    const q=this.value.trim().toLowerCase();let mv=0,av=0;
+    mwGrid.querySelectorAll('.card').forEach(c=>{const m=!q||c.dataset.title.toLowerCase().includes(q)||(c.dataset.tag||'').toLowerCase().includes(q)||(c.dataset.line||'').toLowerCase().includes(q);c.style.display=m?'':'none';if(m)mv++;});
+    anGrid.querySelectorAll('.card').forEach(c=>{const m=!q||c.dataset.title.toLowerCase().includes(q)||(c.dataset.tag||'').toLowerCase().includes(q)||(c.dataset.line||'').toLowerCase().includes(q);c.style.display=m?'':'none';if(m)av++;});
+    document.getElementById('mwCnt').textContent=q?mv+' results':'11 systems';
+    document.getElementById('anCnt').textContent=q?av+' results':'84 titles';
+    document.getElementById('mwEmpty').style.display=mv===0?'block':'none';
+    document.getElementById('anEmpty').style.display=av===0?'block':'none';
+  },120);
 });
 </script>
 </body>
