@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Decision Systems · SS</title>
+<title>Beyond Fiction · SS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -26,7 +26,44 @@
   --green-soft:rgba(16,185,129,0.09);
   --green-border:rgba(16,185,129,0.28);
   --r:12px;
+  --nav-bg:rgba(0,0,0,0.9);
+  --shimmer:rgba(98,113,255,0.04);
+  --fb-bg:linear-gradient(135deg,#0d0d0d,#111);
 }
+
+@media(prefers-color-scheme:light){
+  :root{
+    --bg:#f7f7fa;
+    --surface:#eeeef4;
+    --card:#ffffff;
+    --card-h:#f3f3f8;
+    --border:rgba(0,0,0,0.08);
+    --border-h:rgba(0,0,0,0.17);
+    --t1:#0d0d0d;
+    --t2:#595959;
+    --t3:#b0b0b0;
+    --accent:#5060ee;
+    --accent2:#6271ff;
+    --accent-soft:rgba(80,96,238,0.08);
+    --accent-border:rgba(80,96,238,0.22);
+    --green:#059669;
+    --green-soft:rgba(5,150,105,0.08);
+    --green-border:rgba(5,150,105,0.22);
+    --nav-bg:rgba(247,247,250,0.93);
+    --shimmer:rgba(80,96,238,0.04);
+    --fb-bg:linear-gradient(135deg,#f0f0f4,#e8e8ee);
+  }
+  body::before{opacity:.004;}
+  body::after{background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(80,96,238,0.06) 0%,transparent 65%);}
+  ::-webkit-scrollbar-thumb{background:#c8c8cc;}
+  .lmark{background:#eeeef4;border-color:rgba(0,0,0,0.1);}
+  #si{background:#eeeef4;border-color:rgba(0,0,0,0.1);color:#0d0d0d;}
+  #si::placeholder{color:#c0c0c8;}
+  .mbox{background:#ffffff;}
+  .mins{background:rgba(80,96,238,0.06);}
+  .hstats{background:#ffffff;}
+}
+
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
@@ -67,7 +104,7 @@ body::after{
   height:56px;
   display:flex;align-items:center;justify-content:space-between;
   padding:0 5%;
-  background:rgba(0,0,0,0.9);
+  background:var(--nav-bg);
   backdrop-filter:blur(24px);
   border-bottom:1px solid var(--border);
 }
@@ -99,14 +136,6 @@ body::after{
 }
 #si:focus{border-color:var(--accent-border);width:188px;}
 #si::placeholder{color:var(--t3);}
-.ntag{
-  font-family:'JetBrains Mono',monospace;
-  font-size:.56rem;color:var(--t3);
-  background:var(--surface);border:1px solid var(--border);
-  padding:4px 10px;border-radius:4px;
-  letter-spacing:1px;text-transform:uppercase;display:none;
-}
-@media(min-width:560px){.ntag{display:block;}}
 
 /* ── WRAP ── */
 .wrap{max-width:1360px;margin:0 auto;padding:0 5% 80px;position:relative;z-index:1;}
@@ -189,7 +218,7 @@ body::after{
   transition:transform .25s,border-color .25s,box-shadow .25s;
   position:relative;
 }
-.sc:hover{border-color:var(--border-h);box-shadow:0 12px 40px rgba(0,0,0,.9);transform:translateY(-3px);}
+.sc:hover{border-color:var(--border-h);box-shadow:0 12px 40px rgba(0,0,0,.3);transform:translateY(-3px);}
 .sc.feat{border-color:var(--accent-border);}
 .scov{aspect-ratio:2/3;overflow:hidden;position:relative;background:#0a0a0a;}
 .scov img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform .4s,opacity .35s;}
@@ -250,14 +279,14 @@ body::after{
   opacity:1;transform:translateY(0);
   transition:opacity .5s ease,transform .5s ease,border-color .2s,box-shadow .2s,background .2s;
 }
-.card:hover{border-color:var(--border-h);box-shadow:0 16px 48px rgba(0,0,0,.9);background:var(--card-h);}
+.card:hover{border-color:var(--border-h);box-shadow:0 16px 48px rgba(0,0,0,.15);background:var(--card-h);}
 .card.feat{border-color:var(--accent-border);}
 
 /* IMAGE shimmer skeleton */
 .cimg{aspect-ratio:2/3;overflow:hidden;position:relative;background:#0c0c0c;}
 .cimg::before{
   content:'';position:absolute;inset:0;z-index:1;
-  background:linear-gradient(90deg,transparent,rgba(98,113,255,0.04),transparent);
+  background:linear-gradient(90deg,transparent,var(--shimmer),transparent);
   animation:shimmer 1.8s ease-in-out infinite;
 }
 .cimg img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:transform .4s,opacity .35s;position:relative;z-index:2;}
@@ -278,13 +307,6 @@ body::after{
   border-radius:4px;font-family:'JetBrains Mono',monospace;
   font-size:.52rem;color:var(--accent2);padding:2px 6px;
   backdrop-filter:blur(6px);
-}
-.cimg-tag{
-  position:absolute;bottom:7px;left:7px;z-index:4;
-  font-family:'JetBrains Mono',monospace;font-size:.46rem;
-  padding:2px 6px;border-radius:3px;text-transform:uppercase;
-  background:rgba(0,0,0,.8);border:1px solid var(--border);color:var(--t3);
-  backdrop-filter:blur(4px);
 }
 
 /* ✅ COMPLETED BADGE */
@@ -319,13 +341,13 @@ body::after{
   text-align:center;padding:10px;
   font-family:'Syne',sans-serif;font-style:italic;
   font-size:.62rem;color:var(--t3);
-  background:linear-gradient(135deg,#0d0d0d,#111);
+  background:var(--fb-bg);
 }
 
 /* ── MODAL ── */
 .mov{
   position:fixed;inset:0;z-index:500;
-  background:rgba(0,0,0,.95);backdrop-filter:blur(28px);
+  background:rgba(0,0,0,.92);backdrop-filter:blur(28px);
   display:flex;align-items:flex-end;justify-content:center;
   visibility:hidden;opacity:0;
   transition:visibility 0s .3s,opacity .3s ease;
@@ -436,44 +458,42 @@ footer p+p{margin-top:7px;color:var(--t2);font-style:italic;font-family:'Syne',s
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input id="si" type="text" placeholder="Search titles…" autocomplete="off">
     </div>
-    <div class="ntag">Decision Logs / v6</div>
   </div>
 </nav>
 
 <div class="wrap">
   <div class="hero">
     <div class="hl">
-      <div class="eyebrow">Mental Operating System</div>
-      <h1>Decision<br><em>Systems</em></h1>
-      <p class="hsub">Execution frameworks extracted from Manhwa, Novel &amp; Anime — solid architectural patterns for real system design.</p>
+      <div class="eyebrow">Fiction That Hit Different</div>
+      <h1>Beyond<br><em>Fiction</em></h1>
+      <p class="hsub">Not just favorite titles — mind-blowing stories jo maine experience ki hain</p>
       <div class="now-reading">Currently reading · <span>Lord of the Mysteries</span></div>
     </div>
     <div class="hstats">
       <div class="stat"><span class="sn" data-t="11" data-s="">0</span><span class="sl">Manhwa</span></div>
       <div class="stat"><span class="sn" data-t="84" data-s="+">0</span><span class="sl">Anime</span></div>
-      <div class="stat"><span class="sn" data-t="95" data-s="+">0</span><span class="sl">Frameworks</span></div>
     </div>
   </div>
 
   <div class="shelf">
-    <div class="shelfh"><h3>Core frameworks &mdash; top picks</h3><span class="shelfhint">← scroll →</span></div>
+    <div class="shelfh"><h3>Story Vault &mdash; Top Picks</h3><span class="shelfhint">← scroll →</span></div>
     <div class="sx" id="shelfEl"></div>
   </div>
 
   <div class="sec">
-    <div class="sectit">Manhwa &amp; Novel · Execution Models <span class="cbadge" id="mwCnt">11 systems</span></div>
+    <div class="sectit">Manhwa &amp; Novels · Peak Fiction <span class="cbadge" id="mwCnt">11 titles</span></div>
     <div class="section-rule"></div>
     <div class="grid" id="mwGrid"><div class="nores" id="mwEmpty">No results found</div></div>
   </div>
 
   <div class="sec">
-    <div class="sectit">Anime · Architectural Archetypes <span class="cbadge" id="anCnt">84 titles</span></div>
+    <div class="sectit">Anime · Legendary Stories <span class="cbadge" id="anCnt">84 titles</span></div>
     <div class="section-rule"></div>
     <div class="grid" id="anGrid"><div class="nores" id="anEmpty">No results found</div></div>
   </div>
 
   <footer>
-    <p>BUILT INDEPENDENTLY · SYSTEMS ENGINEERING MINDSET</p>
+    <p>Built independently · Stories that stayed.</p>
     <p>If the MC would give up here, I'd pick a better MC.</p>
   </footer>
 </div>
@@ -511,125 +531,87 @@ footer p+p{margin-top:7px;color:var(--t2);font-style:italic;font-family:'Syne',s
 
 <script>
 // ── IMAGE PROXY ──────────────────────────────────────────────
-function px(url, w, h) {
-  if (!url) return '';
-  return url;
-}
+function px(url){if(!url)return '';return url;}
 
-function stars(score) {
-  const s = parseFloat(score)||0, full=Math.floor(s/2), half=(s/2-full)>=.4?1:0, empty=5-full-half;
+function stars(score){
+  const s=parseFloat(score)||0,full=Math.floor(s/2),half=(s/2-full)>=.4?1:0,empty=5-full-half;
   return '★'.repeat(full)+(half?'½':'')+('☆'.repeat(empty));
 }
 
-function attachImg(img, src, title) {
-  if (!src) return;
-  img.onload  = () => { img.classList.add('ok'); const w=img.closest('.cimg,.scov,.mposter'); if(w){w.classList.add('done');} };
-  img.onerror = () => {
+function attachImg(img,src,title){
+  if(!src)return;
+  img.onload=()=>{img.classList.add('ok');const w=img.closest('.cimg,.scov,.mposter');if(w){w.classList.add('done');}};
+  img.onerror=()=>{
     img.style.display='none';
     const w=img.closest('.cimg,.scov,.mposter');
-    if(w){ w.classList.add('done'); if(!w.querySelector('.imgfb')){const fb=document.createElement('div');fb.className='imgfb';fb.textContent=title||'';w.appendChild(fb);} }
+    if(w){w.classList.add('done');if(!w.querySelector('.imgfb')){const fb=document.createElement('div');fb.className='imgfb';fb.textContent=title||'';w.appendChild(fb);}}
   };
-  img.referrerPolicy = 'no-referrer';
-  img.dataset.orig = src;
-  img.src = src;
+  img.referrerPolicy='no-referrer';
+  img.dataset.orig=src;
+  img.src=src;
 }
 
-// ── ANILIST IMAGE HYDRATION (batch, rate-limit safe) ─────────
-async function hydrateAniListImages() {
-  const allItems = [...MANHWA, ...ANIME];
-  const BATCH = 10;
-  const DELAY_MS = 1200;
-
-  const titleFix = {
-    'jt':    'Juuni Taisen',
-    'sh':    'The Rising of the Shield Hero',
-    'sr':    'Summertime Rendering',
-    'kgs':   'Kaguya-sama Love Is War',
-    'lom':   'Lord of the Mysteries',
-    'ged':   'The Great Estate Developer',
-    'pmu':   'Pick Me Up',
-    'sss':   'SSS-Class Suicide Hunter',
-    'latna': 'Latna Saga',
-    'ops':   'Overpowered Sword',
-    'tbate': 'The Beginning After the End',
-    'lutg':  'Leveling Up with Gods',
-    'nb':    'The Northern Blade',
-    'orv':   "Omniscient Reader's Viewpoint",
-    'sl':    'Solo Leveling',
+// ── ANILIST IMAGE HYDRATION ──────────────────────────────────
+async function hydrateAniListImages(){
+  const allItems=[...MANHWA,...ANIME];
+  const BATCH=10,DELAY_MS=1200;
+  const titleFix={
+    'jt':'Juuni Taisen','sh':'The Rising of the Shield Hero','sr':'Summertime Rendering',
+    'kgs':'Kaguya-sama Love Is War','lom':'Lord of the Mysteries','ged':'The Great Estate Developer',
+    'pmu':'Pick Me Up','sss':'SSS-Class Suicide Hunter','latna':'Latna Saga',
+    'ops':'Overpowered Sword','tbate':'The Beginning After the End','lutg':'Leveling Up with Gods',
+    'nb':'The Northern Blade','orv':"Omniscient Reader's Viewpoint",'sl':'Solo Leveling',
   };
-
-  async function fetchBatch(items) {
-    const fields = items.map((item, idx) => {
-      const isManga = item.malType === 'manga' || item.fmt === 'Novel' || item.fmt === 'Manhwa';
-      const type = isManga ? 'MANGA' : 'ANIME';
-      if (item.anilistId) {
-        return `i${idx}: Media(id: ${item.anilistId}) { coverImage { large } }`;
-      }
-      const raw = titleFix[item.id] || item.title;
-      const safe = raw.replace(/["\\]/g, '');
-      return `i${idx}: Media(search: "${safe}", type: ${type}) { coverImage { large } }`;
+  async function fetchBatch(items){
+    const fields=items.map((item,idx)=>{
+      const isManga=item.malType==='manga'||item.fmt==='Novel'||item.fmt==='Manhwa';
+      const type=isManga?'MANGA':'ANIME';
+      if(item.anilistId)return `i${idx}: Media(id: ${item.anilistId}){coverImage{large}}`;
+      const raw=titleFix[item.id]||item.title;
+      const safe=raw.replace(/["\\]/g,'');
+      return `i${idx}: Media(search: "${safe}", type: ${type}){coverImage{large}}`;
     }).join(' ');
-
-    try {
-      const r = await fetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ query: `{ ${fields} }` })
-      });
-      if (!r.ok) { console.warn('AniList HTTP', r.status); return {}; }
-      const json = await r.json();
-      const result = {};
-      if (json.data) {
-        Object.entries(json.data).forEach(([key, val]) => {
-          const idx = parseInt(key.slice(1));
-          if (val && val.coverImage && val.coverImage.large && items[idx]) {
-            result[items[idx].id] = val.coverImage.large;
-          }
-        });
-      }
+    try{
+      const r=await fetch('https://graphql.anilist.co',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({query:`{ ${fields} }`})});
+      if(!r.ok){console.warn('AniList HTTP',r.status);return {};}
+      const json=await r.json();
+      const result={};
+      if(json.data){Object.entries(json.data).forEach(([key,val])=>{const idx=parseInt(key.slice(1));if(val&&val.coverImage&&val.coverImage.large&&items[idx])result[items[idx].id]=val.coverImage.large;});}
       return result;
-    } catch (e) { console.warn('AniList batch error', e); return {}; }
+    }catch(e){console.warn('AniList batch error',e);return {};}
   }
-
-  function applyImg(itemId, imgUrl, itemTitle) {
-    document.querySelectorAll('.card, .sc').forEach(card => {
-      if (card.dataset.id === itemId) {
-        card.dataset.img = imgUrl;
-        const img = card.querySelector('img');
-        if (img) {
-          img.classList.remove('ok');
-          const w = img.closest('.cimg,.scov,.mposter');
-          if (w) { w.classList.remove('done'); const fb = w.querySelector('.imgfb'); if (fb) fb.remove(); }
-          img.style.display = '';
-          attachImg(img, imgUrl, itemTitle);
-        }
+  function applyImg(itemId,imgUrl,itemTitle){
+    document.querySelectorAll('.card,.sc').forEach(card=>{
+      if(card.dataset.id===itemId){
+        card.dataset.img=imgUrl;
+        const img=card.querySelector('img');
+        if(img){img.classList.remove('ok');const w=img.closest('.cimg,.scov,.mposter');if(w){w.classList.remove('done');const fb=w.querySelector('.imgfb');if(fb)fb.remove();}img.style.display='';attachImg(img,imgUrl,itemTitle);}
       }
     });
   }
-
-  for (let i = 0; i < allItems.length; i += BATCH) {
-    const batch = allItems.slice(i, i + BATCH);
-    const results = await fetchBatch(batch);
-    const failed = batch.filter(item => !results[item.id]);
-    batch.forEach(item => { if (results[item.id]) applyImg(item.id, results[item.id], item.title); });
-    if (failed.length > 0) {
-      await Promise.all(failed.map(async item => {
-        if (item.fmt !== 'Manhwa' && item.fmt !== 'Novel') return;
-        try {
-          const q = encodeURIComponent((titleFix[item.id] || item.title).toLowerCase());
-          const r = await fetch(`https://kitsu.io/api/edge/manga?filter[text]=${q}&page[limit]=1`,{headers:{'Accept':'application/vnd.api+json'}});
-          if (!r.ok) return;
-          const json = await r.json();
-          const cover = json?.data?.[0]?.attributes?.posterImage?.large || json?.data?.[0]?.attributes?.posterImage?.medium;
-          if (cover) applyImg(item.id, cover, item.title);
-        } catch(e) { /* silent fail */ }
+  for(let i=0;i<allItems.length;i+=BATCH){
+    const batch=allItems.slice(i,i+BATCH);
+    const results=await fetchBatch(batch);
+    const failed=batch.filter(item=>!results[item.id]);
+    batch.forEach(item=>{if(results[item.id])applyImg(item.id,results[item.id],item.title);});
+    if(failed.length>0){
+      await Promise.all(failed.map(async item=>{
+        if(item.fmt!=='Manhwa'&&item.fmt!=='Novel')return;
+        try{
+          const q=encodeURIComponent((titleFix[item.id]||item.title).toLowerCase());
+          const r=await fetch(`https://kitsu.io/api/edge/manga?filter[text]=${q}&page[limit]=1`,{headers:{'Accept':'application/vnd.api+json'}});
+          if(!r.ok)return;
+          const json=await r.json();
+          const cover=json?.data?.[0]?.attributes?.posterImage?.large||json?.data?.[0]?.attributes?.posterImage?.medium;
+          if(cover)applyImg(item.id,cover,item.title);
+        }catch(e){}
       }));
     }
-    if (i + BATCH < allItems.length) await new Promise(res => setTimeout(res, DELAY_MS));
+    if(i+BATCH<allItems.length)await new Promise(res=>setTimeout(res,DELAY_MS));
   }
 }
 
-// ── DATA — ALL STATUS: 'done' ────────────────────────────────
+// ── DATA ─────────────────────────────────────────────────────
 const MANHWA=[
   {id:'lom',title:'Lord of the Mysteries',fmt:'Novel',tag:'META COGNITION',line:'reality is nested abstractions',status:'done',score:'9.1',year:'2018',episodes:'1450+ chapters',malId:120478,malType:'manga',anilistId:104816,feat:true,
    insight:'Build second-order models of the system you operate inside. Klein Moretti survives by reasoning about the game\'s rules — not just playing by them. True mastery is knowing the meta before acting in the base.',
@@ -757,7 +739,7 @@ function mkCard(item){
   const d=document.createElement('div');
   d.className='card'+(item.feat?' feat':'');
   ['id','title','insight','img','score','year','episodes','line','status'].forEach(k=>d.dataset[k]=item[k]||'');
-  d.dataset.fmt=item.fmt||'Anime'; d.dataset.tag=item.tag||''; d.dataset.malId=item.malId||0; d.dataset.malType=item.malType||'anime';
+  d.dataset.fmt=item.fmt||'Anime';d.dataset.tag=item.tag||'';d.dataset.malId=item.malId||0;d.dataset.malType=item.malType||'anime';
   d.innerHTML=`
     <div class="cimg">
       <img alt="${item.title}" loading="lazy" decoding="async">
@@ -771,7 +753,7 @@ function mkCard(item){
       <div class="cmeta">${item.tag?`<span class="ctag-chip">${item.tag}</span>`:''}
       <span class="cstatus done">Completed</span></div>
     </div>`;
-  attachImg(d.querySelector('img'), px(item.img,400,600), item.title);
+  attachImg(d.querySelector('img'),px(item.img),item.title);
   return d;
 }
 
@@ -779,7 +761,7 @@ function mkShelfCard(item){
   const d=document.createElement('div');
   d.className='sc'+(item.feat?' feat':'');
   ['id','title','insight','img','score','year','episodes','line','status'].forEach(k=>d.dataset[k]=item[k]||'');
-  d.dataset.fmt=item.fmt||''; d.dataset.tag=item.tag||''; d.dataset.malId=item.malId||0; d.dataset.malType=item.malType||'anime';
+  d.dataset.fmt=item.fmt||'';d.dataset.tag=item.tag||'';d.dataset.malId=item.malId||0;d.dataset.malType=item.malType||'anime';
   d.innerHTML=`
     <div class="scov">
       <img alt="${item.title}" loading="lazy" decoding="async">
@@ -787,8 +769,8 @@ function mkShelfCard(item){
       ${item.score?`<div class="sc-score">★ ${item.score}</div>`:''}
       <div class="sc-complete">DONE</div>
     </div>
-    <div class="sinf"><div class="stit">${item.title}</div><div class="ssub">${item.tag||'framework'}</div></div>`;
-  attachImg(d.querySelector('img'), px(item.img,240,360), item.title);
+    <div class="sinf"><div class="stit">${item.title}</div><div class="ssub">${item.tag||'top pick'}</div></div>`;
+  attachImg(d.querySelector('img'),px(item.img),item.title);
   return d;
 }
 
@@ -849,7 +831,7 @@ const mDes=document.getElementById('mDes'),mIns=document.getElementById('mIns'),
 
 function openModal(d){
   mImg.classList.remove('ok');
-  attachImg(mImg, px(d.img,320,480), d.title);
+  attachImg(mImg,px(d.img),d.title);
   mTit.textContent=d.title;
   mTyp.textContent=(d.fmt||'Anime')+' · '+(d.tag||'');
   const s=parseFloat(d.score)||0;
@@ -863,9 +845,10 @@ function openModal(d){
   const mid=parseInt(d.malId);
   if(mid>0){mMalBtn.href=`https://myanimelist.net/${d.malType||'anime'}/${mid}`;mMalBtn.style.display='inline-flex';}
   else mMalBtn.style.display='none';
+  setTimeout(()=>{document.getElementById('mScoreBar').style.width=(s/10*100)+'%';},80);
   modal.classList.add('open');document.body.style.overflow='hidden';
 }
-function closeModal(){modal.classList.remove('open');document.body.style.overflow='';}
+function closeModal(){modal.classList.remove('open');document.body.style.overflow='';setTimeout(()=>{document.getElementById('mScoreBar').style.width='0%';},300);}
 
 document.querySelectorAll('.card,.sc').forEach(el=>{
   el.addEventListener('click',()=>openModal({title:el.dataset.title,fmt:el.dataset.fmt,tag:el.dataset.tag,insight:el.dataset.insight,img:el.dataset.img,score:el.dataset.score,year:el.dataset.year,episodes:el.dataset.episodes,malId:el.dataset.malId,malType:el.dataset.malType,line:el.dataset.line,status:el.dataset.status}));
@@ -886,7 +869,7 @@ document.getElementById('si').addEventListener('input',function(){
     const q=this.value.trim().toLowerCase();let mv=0,av=0;
     mwGrid.querySelectorAll('.card').forEach(c=>{const m=!q||c.dataset.title.toLowerCase().includes(q)||(c.dataset.tag||'').toLowerCase().includes(q)||(c.dataset.line||'').toLowerCase().includes(q);c.style.display=m?'':'none';if(m)mv++;});
     anGrid.querySelectorAll('.card').forEach(c=>{const m=!q||c.dataset.title.toLowerCase().includes(q)||(c.dataset.tag||'').toLowerCase().includes(q)||(c.dataset.line||'').toLowerCase().includes(q);c.style.display=m?'':'none';if(m)av++;});
-    document.getElementById('mwCnt').textContent=q?mv+' results':'11 systems';
+    document.getElementById('mwCnt').textContent=q?mv+' results':'11 titles';
     document.getElementById('anCnt').textContent=q?av+' results':'84 titles';
     document.getElementById('mwEmpty').style.display=mv===0?'block':'none';
     document.getElementById('anEmpty').style.display=av===0?'block':'none';
